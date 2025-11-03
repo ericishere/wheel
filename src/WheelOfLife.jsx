@@ -75,7 +75,7 @@ const WheelOfLife = ({ items, ratings, maxScore = 10 }) => {
   };
 
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+    <svg width={size*2} height={size} viewBox={`0 0 ${size} ${size}`}>
       {/* Background */}
       <circle cx={center} cy={center} r={maxRadius + 50} fill="#ffffff" />
       
