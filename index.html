@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wheel of Life Generator</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Wheel of Life Generator</h1>
+      <p>Create a dynamic security maturity wheel with customizable entries, ratings, and styling.</p>
+    </header>
+    <main class="layout">
+      <section class="controls" aria-label="Configuration options">
+        <h2>Configuration</h2>
+        <div class="control-group">
+          <label for="max-rating">Maximum rating per item</label>
+          <input id="max-rating" type="number" min="1" max="12" value="6" />
+        </div>
+        <div class="control-group">
+          <label for="target-rating">Target rating for yellow band</label>
+          <input id="target-rating" type="number" min="0" max="12" value="5" />
+        </div>
+        <div class="control-group">
+          <label for="inner-gap">Inner radius gap (%)</label>
+          <input id="inner-gap" type="range" min="0" max="40" value="18" />
+          <span class="range-value" data-for="inner-gap">18%</span>
+        </div>
+        <div class="control-group">
+          <label for="segment-gap">Segment gap (degrees)</label>
+          <input id="segment-gap" type="range" min="0" max="8" step="0.5" value="1.5" />
+          <span class="range-value" data-for="segment-gap">1.5°</span>
+        </div>
+        <fieldset class="control-group color-group">
+          <legend>Colors by rating</legend>
+          <label>Below target (<span id="low-threshold-display"></span>)
+            <input id="color-low" type="color" value="#e74c3c" />
+          </label>
+          <label>On target (= <span id="target-threshold-display"></span>)
+            <input id="color-target" type="color" value="#f1c40f" />
+          </label>
+          <label>Above target (> <span id="high-threshold-display"></span>)
+            <input id="color-high" type="color" value="#2ecc71" />
+          </label>
+        </fieldset>
+        <div class="control-group">
+          <label for="lighten-step">Outer segment lightness</label>
+          <input id="lighten-step" type="range" min="0" max="40" value="15" />
+          <span class="range-value" data-for="lighten-step">15%</span>
+        </div>
+        <div class="control-group toggle-group">
+          <label>
+            <input id="show-guides" type="checkbox" checked />
+            Show guides
+          </label>
+          <label>
+            <input id="show-scale" type="checkbox" checked />
+            Show scale markers
+          </label>
+        </div>
+        <div class="items-header">
+          <h3>Items</h3>
+          <button id="add-item" type="button">Add Item</button>
+        </div>
+        <div id="items-list" class="items-list" aria-live="polite"></div>
+      </section>
+      <section class="visualization" aria-label="Wheel of life visualization">
+        <div id="wheel-wrapper" class="wheel-wrapper">
+          <canvas id="wheel-canvas" width="900" height="900"></canvas>
+        </div>
+        <div class="visualization-actions">
+          <button id="fullscreen-btn" type="button">Enter fullscreen</button>
+          <button id="download-btn" type="button">Download PNG</button>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <p>Adjust the values to see the wheel update instantly. Ratings fill segments instead of changing color intensity.</p>
+    </footer>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
