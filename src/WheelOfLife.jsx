@@ -2,7 +2,7 @@ import React from 'react';
 
 const defaultColorSettings = {
   low: '#ef4444',
-  mid: '#f59e0b',
+  mid: '#ffa366',
   high: '#22c55e',
 };
 

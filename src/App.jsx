@@ -55,7 +55,7 @@ function App() {
   const [categories, setCategories] = useState(defaultCategories);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [lowColor, setLowColor] = useState('#ef4444');
-  const [midColor, setMidColor] = useState('#f59e0b');
+  const [midColor, setMidColor] = useState('#ffa366');
   const [highColor, setHighColor] = useState('#22c55e');
   const [categoryLabelColor, setCategoryLabelColor] = useState('#000000');
   const [showCustomization, setShowCustomization] = useState(false);
@@ -167,7 +167,7 @@ function App() {
   const resetToDefaults = () => {
     setCategories(defaultCategories);
     setLowColor('#ef4444');
-    setMidColor('#f59e0b');
+    setMidColor('#ffa366');
     setHighColor('#22c55e');
     setCategoryLabelColor('#000000');
   };
@@ -211,7 +211,7 @@ function App() {
                 />
               </label>
               <label>
-                Mid (Yellow)
+                Mid (Orange)
                 <input
                   type="color"
                   value={midColor}
@@ -287,7 +287,7 @@ function App() {
                           className="status-select"
                         >
                           <option value="low">Low (Red)</option>
-                          <option value="mid">Mid (Yellow)</option>
+                          <option value="mid">Mid (Orange)</option>
                           <option value="high">High (Green)</option>
                         </select>
                       </div>
