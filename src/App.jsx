@@ -2,6 +2,12 @@ import React, { useState, useRef } from 'react';
 import WheelOfLife from './WheelOfLife';
 import './App.css';
 
+const defaultPresetColors = {
+  preset1: '#22c55e', // Green
+  preset2: '#f59e0b', // Yellow
+  preset3: '#ef4444'  // Red
+};
+
 const defaultCategories = [
   {
     id: 1,
@@ -9,9 +15,9 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 1, name: "Vulnerability Management", color: "#22c55e" },
-      { id: 2, name: "Governance Risk Verification", color: "#f59e0b" },
-      { id: 3, name: "Penetration Test", color: "#ef4444" }
+      { id: 1, name: "Vulnerability Management", colorPreset: 'preset1' },
+      { id: 2, name: "Governance Risk Verification", colorPreset: 'preset2' },
+      { id: 3, name: "Penetration Test", colorPreset: 'preset3' }
     ]
   },
   {
@@ -20,11 +26,11 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 4, name: "Data Loss Prevention (DLP)", color: "#22c55e" },
-      { id: 5, name: "Architecture", color: "#f59e0b" },
-      { id: 6, name: "Engineering", color: "#ef4444" },
-      { id: 7, name: "DevSecOps", color: "#22c55e" },
-      { id: 8, name: "Training", color: "#f59e0b" }
+      { id: 4, name: "Data Loss Prevention (DLP)", colorPreset: 'preset1' },
+      { id: 5, name: "Architecture", colorPreset: 'preset2' },
+      { id: 6, name: "Engineering", colorPreset: 'preset3' },
+      { id: 7, name: "DevSecOps", colorPreset: 'preset1' },
+      { id: 8, name: "Training", colorPreset: 'preset2' }
     ]
   },
   {
@@ -33,7 +39,7 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 9, name: "Security Operation Center (SOC)", color: "#ef4444" }
+      { id: 9, name: "Security Operation Center (SOC)", colorPreset: 'preset3' }
     ]
   },
   {
@@ -42,7 +48,7 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 10, name: "Incident Response", color: "#22c55e" }
+      { id: 10, name: "Incident Response", colorPreset: 'preset1' }
     ]
   },
   {
@@ -51,13 +57,14 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 11, name: "Project Management", color: "#f59e0b" }
+      { id: 11, name: "Project Management", colorPreset: 'preset2' }
     ]
   }
 ];
 
 function App() {
   const [categories, setCategories] = useState(defaultCategories);
+  const [presetColors, setPresetColors] = useState(defaultPresetColors);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
@@ -94,18 +101,25 @@ function App() {
     }));
   };
 
-  const handleItemColorChange = (categoryId, itemId, value) => {
+  const handleItemColorPresetChange = (categoryId, itemId, value) => {
     setCategories(categories.map(cat => {
       if (cat.id === categoryId) {
         return {
           ...cat,
           items: cat.items.map(item => 
-            item.id === itemId ? { ...item, color: value } : item
+            item.id === itemId ? { ...item, colorPreset: value } : item
           )
         };
       }
       return cat;
     }));
+  };
+
+  const handlePresetColorChange = (presetKey, value) => {
+    setPresetColors({
+      ...presetColors,
+      [presetKey]: value
+    });
   };
 
   const addCategory = () => {
@@ -115,7 +129,7 @@ function App() {
       name: `Category ${categories.length + 1}`,
       color: '#2196F3',
       fontColor: '#000000',
-      items: [{ id: Date.now(), name: 'New Item', color: '#22c55e' }]
+      items: [{ id: Date.now(), name: 'New Item', colorPreset: 'preset1' }]
     }]);
   };
 
@@ -135,7 +149,7 @@ function App() {
           : 1;
         return {
           ...cat,
-          items: [...cat.items, { id: newItemId, name: 'New Item', color: '#22c55e' }]
+          items: [...cat.items, { id: newItemId, name: 'New Item', colorPreset: 'preset1' }]
         };
       }
       return cat;
@@ -174,6 +188,7 @@ function App() {
 
   const resetToDefaults = () => {
     setCategories(defaultCategories);
+    setPresetColors(defaultPresetColors);
   };
 
   return (
@@ -195,6 +210,42 @@ function App() {
           <div className="panel-header">
             <h2>Customization</h2>
             <button onClick={resetToDefaults} className="btn btn-secondary">Reset to Defaults</button>
+          </div>
+
+          <div className="preset-colors-section">
+            <h3>Item Color Presets</h3>
+            <div className="preset-colors-grid">
+              <label className="preset-color-control">
+                <span>Preset 1 (Green):</span>
+                <input
+                  type="color"
+                  value={presetColors.preset1}
+                  onChange={(e) => handlePresetColorChange('preset1', e.target.value)}
+                  className="preset-color-input"
+                />
+                <span className="color-value">{presetColors.preset1}</span>
+              </label>
+              <label className="preset-color-control">
+                <span>Preset 2 (Yellow):</span>
+                <input
+                  type="color"
+                  value={presetColors.preset2}
+                  onChange={(e) => handlePresetColorChange('preset2', e.target.value)}
+                  className="preset-color-input"
+                />
+                <span className="color-value">{presetColors.preset2}</span>
+              </label>
+              <label className="preset-color-control">
+                <span>Preset 3 (Red):</span>
+                <input
+                  type="color"
+                  value={presetColors.preset3}
+                  onChange={(e) => handlePresetColorChange('preset3', e.target.value)}
+                  className="preset-color-input"
+                />
+                <span className="color-value">{presetColors.preset3}</span>
+              </label>
+            </div>
           </div>
 
           <div className="categories-section">
@@ -250,12 +301,16 @@ function App() {
                         />
                         <label className="item-color-label">
                           Color:
-                          <input
-                            type="color"
-                            value={item.color}
-                            onChange={(e) => handleItemColorChange(category.id, item.id, e.target.value)}
-                            className="item-color-input"
-                          />
+                          <select
+                            value={item.colorPreset}
+                            onChange={(e) => handleItemColorPresetChange(category.id, item.id, e.target.value)}
+                            className="item-color-select"
+                            style={{ backgroundColor: presetColors[item.colorPreset] }}
+                          >
+                            <option value="preset1" style={{ backgroundColor: presetColors.preset1 }}>Preset 1 (Green)</option>
+                            <option value="preset2" style={{ backgroundColor: presetColors.preset2 }}>Preset 2 (Yellow)</option>
+                            <option value="preset3" style={{ backgroundColor: presetColors.preset3 }}>Preset 3 (Red)</option>
+                          </select>
                         </label>
                       </div>
                       <div className="item-actions">
@@ -292,7 +347,7 @@ function App() {
         ref={wheelRef} 
         className={`wheel-container ${isFullscreen ? 'fullscreen' : ''}`}
       >
-        <WheelOfLife categories={categories} />
+        <WheelOfLife categories={categories} presetColors={presetColors} />
       </div>
     </div>
   );

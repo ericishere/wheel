@@ -1,6 +1,6 @@
 import React from 'react';
 
-const WheelOfLife = ({ categories }) => {
+const WheelOfLife = ({ categories, presetColors }) => {
   const size = 900;
   const center = size / 2;
   const numCategories = categories.length;
@@ -82,6 +82,7 @@ const WheelOfLife = ({ categories }) => {
       {itemAngles.map((angleData, index) => {
         const category = categories[angleData.categoryIndex];
         const item = category.items[angleData.itemIndex];
+        const itemColor = presetColors[item.colorPreset] || presetColors.preset1;
         const path = createSegmentPath(angleData.startAngle, angleData.endAngle, centerRadius, itemOuterRadius);
 
         // Calculate text position (near outer edge of inner circle - more space)
@@ -101,7 +102,7 @@ const WheelOfLife = ({ categories }) => {
           <g key={`item-${index}`}>
             <path
               d={path}
-              fill={item.color}
+              fill={itemColor}
               stroke="#ffffff"
               strokeWidth="3"
             />
