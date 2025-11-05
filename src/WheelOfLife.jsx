@@ -148,11 +148,21 @@ const WheelOfLife = ({ items, ratings, maxScore = 10 }) => {
       {items.map((item, index) => {
         const { x, y } = getTextPosition(index);
         const angle = (index + 0.5) * anglePerSegment - Math.PI / 2;
-        
+        const rating = Math.max(0, Math.min(ratings[index] ?? 0, maxScore));
+
+        const ringStep = (maxRadius - minRadius) / maxScore;
+        const barOuterRadius = rating > 0 ? minRadius + ringStep * rating : minRadius;
+        const connectorStartRadius = Math.min(barOuterRadius, maxRadius);
+        const connectorEndRadius = textRadius - 12;
+        const connectorStartX = center + connectorStartRadius * Math.cos(angle);
+        const connectorStartY = center + connectorStartRadius * Math.sin(angle);
+        const connectorEndX = center + connectorEndRadius * Math.cos(angle);
+        const connectorEndY = center + connectorEndRadius * Math.sin(angle);
+
         // Determine text anchor based on position
         let textAnchor = 'middle';
-        const angleInDegrees = ((angle + Math.PI / 2) * 180 / Math.PI) % 360;
-        
+        const angleInDegrees = ((angle + Math.PI / 2) * 180) / Math.PI % 360;
+
         if (angleInDegrees > 10 && angleInDegrees < 170) {
           textAnchor = 'start';
         } else if (angleInDegrees > 190 && angleInDegrees < 350) {
@@ -160,19 +170,29 @@ const WheelOfLife = ({ items, ratings, maxScore = 10 }) => {
         }
 
         return (
-          <text
-            key={`label-${index}`}
-            x={x}
-            y={y}
-            textAnchor={textAnchor}
-            dominantBaseline="middle"
-            fill="#333"
-            fontSize="14"
-            fontWeight="500"
-            style={{ userSelect: 'none' }}
-          >
-            {item}
-          </text>
+          <g key={`label-${index}`}>
+            <line
+              x1={connectorStartX}
+              y1={connectorStartY}
+              x2={connectorEndX}
+              y2={connectorEndY}
+              stroke="#94a3b8"
+              strokeWidth="1"
+              strokeLinecap="round"
+            />
+            <text
+              x={x}
+              y={y}
+              textAnchor={textAnchor}
+              dominantBaseline="middle"
+              fill="#333"
+              fontSize="14"
+              fontWeight="500"
+              style={{ userSelect: 'none' }}
+            >
+              {item}
+            </text>
+          </g>
         );
       })}
 
