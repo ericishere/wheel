@@ -74,6 +74,25 @@ function App() {
     setRatings(ratings.filter((_, i) => i !== index));
   };
 
+  const moveItem = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= items.length) {
+      return;
+    }
+
+    setItems((current) => {
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+
+    setRatings((current) => {
+      const next = [...current];
+      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
+      return next;
+    });
+  };
+
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       wheelRef.current?.requestFullscreen().then(() => {
@@ -207,23 +226,45 @@ function App() {
           <div className="items-list">
             {items.map((item, index) => (
               <div key={index} className="item-control">
-                <input
-                  type="text"
-                  value={item}
-                  onChange={(e) => handleItemChange(index, e.target.value)}
-                  className="item-input"
-                />
-                <input
-                  type="number"
-                  min="0"
-                  max={maxScore}
-                  value={ratings[index]}
-                  onChange={(e) => handleRatingChange(index, e.target.value)}
-                  className="rating-input"
-                />
-                <button onClick={() => removeItem(index)} className="btn btn-danger">
-                  Remove
-                </button>
+                <div className="item-fields">
+                  <input
+                    type="text"
+                    value={item}
+                    onChange={(e) => handleItemChange(index, e.target.value)}
+                    className="item-input"
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    max={maxScore}
+                    value={ratings[index]}
+                    onChange={(e) => handleRatingChange(index, e.target.value)}
+                    className="rating-input"
+                  />
+                </div>
+                <div className="item-actions">
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => moveItem(index, -1)}
+                    disabled={index === 0}
+                    aria-label={`Move ${item} up`}
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-btn"
+                    onClick={() => moveItem(index, 1)}
+                    disabled={index === items.length - 1}
+                    aria-label={`Move ${item} down`}
+                  >
+                    ↓
+                  </button>
+                  <button type="button" onClick={() => removeItem(index)} className="btn btn-danger remove-btn">
+                    Remove
+                  </button>
+                </div>
               </div>
             ))}
           </div>

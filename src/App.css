@@ -168,9 +168,25 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  justify-content: space-between;
   padding: 10px;
   background-color: #f8f9fa;
   border-radius: 6px;
+}
+
+.item-fields {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .item-input {
@@ -182,11 +198,43 @@
 }
 
 .rating-input {
-  width: 80px;
+  width: 90px;
   padding: 8px 12px;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 14px;
+}
+
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background-color: #e2e8f0;
+  border-color: #cbd5f5;
+}
+
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.remove-btn {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .add-item-btn {
@@ -267,6 +315,10 @@
   .item-control {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .item-actions {
+    justify-content: flex-start;
   }
 
   .rating-input {
