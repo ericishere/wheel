@@ -57,6 +57,7 @@ function App() {
   const [lowColor, setLowColor] = useState('#ef4444');
   const [midColor, setMidColor] = useState('#f59e0b');
   const [highColor, setHighColor] = useState('#22c55e');
+  const [categoryLabelColor, setCategoryLabelColor] = useState('#000000');
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
 
@@ -168,6 +169,7 @@ function App() {
     setLowColor('#ef4444');
     setMidColor('#f59e0b');
     setHighColor('#22c55e');
+    setCategoryLabelColor('#000000');
   };
 
   const colorSettings = {
@@ -222,6 +224,16 @@ function App() {
                   type="color"
                   value={highColor}
                   onChange={(e) => setHighColor(e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="threshold-row">
+              <label>
+                Category Label Color
+                <input
+                  type="color"
+                  value={categoryLabelColor}
+                  onChange={(e) => setCategoryLabelColor(e.target.value)}
                 />
               </label>
             </div>
@@ -313,7 +325,11 @@ function App() {
         ref={wheelRef} 
         className={`wheel-container ${isFullscreen ? 'fullscreen' : ''}`}
       >
-        <WheelOfLife categories={categories} colorSettings={colorSettings} />
+        <WheelOfLife 
+          categories={categories} 
+          colorSettings={colorSettings} 
+          categoryLabelColor={categoryLabelColor}
+        />
       </div>
     </div>
   );

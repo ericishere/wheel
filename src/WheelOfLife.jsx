@@ -6,7 +6,7 @@ const defaultColorSettings = {
   high: '#22c55e',
 };
 
-const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
+const WheelOfLife = ({ categories, colorSettings = defaultColorSettings, categoryLabelColor = '#000000' }) => {
   const size = 900;
   const center = size / 2;
   
@@ -183,7 +183,7 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
             y={y}
             textAnchor="middle"
             dominantBaseline="middle"
-            fill="#ffffff"
+            fill={categoryLabelColor}
             fontSize="16"
             fontWeight="700"
             transform={`rotate(${textAngle}, ${x}, ${y})`}
