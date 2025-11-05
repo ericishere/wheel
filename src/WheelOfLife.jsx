@@ -1,106 +1,17 @@
 import React from 'react';
 
-const defaultColorSettings = {
-  low: { max: 4, color: '#ef4444' },
-  medium: { max: 5, color: '#f59e0b' },
-  high: { color: '#22c55e' },
-};
-
-const hexToRgb = (hex) => {
-  if (typeof hex !== 'string') {
-    return { r: 239, g: 68, b: 68 };
-  }
-
-  let normalized = hex.replace('#', '').trim();
-
-  if (normalized.length === 3) {
-    normalized = normalized
-      .split('')
-      .map((char) => char + char)
-      .join('');
-  }
-
-  const parsed = Number.parseInt(normalized, 16);
-  if (Number.isNaN(parsed)) {
-    return { r: 239, g: 68, b: 68 };
-  }
-
-  return {
-    r: (parsed >> 16) & 255,
-    g: (parsed >> 8) & 255,
-    b: parsed & 255,
-  };
-};
-
-const mixWithWhite = (hex, amount) => {
-  const safeAmount = Math.min(Math.max(amount, 0), 1);
-  const { r, g, b } = hexToRgb(hex);
-
-  const mixChannel = (channel) => Math.round(channel + (255 - channel) * safeAmount);
-
-  return `rgb(${mixChannel(r)}, ${mixChannel(g)}, ${mixChannel(b)})`;
-};
-
-const resolveBaseColor = (rating, colorSettings) => {
-  const merged = { ...defaultColorSettings, ...colorSettings };
-  const lowMax = merged.low?.max ?? defaultColorSettings.low.max;
-  const mediumMax = merged.medium?.max ?? defaultColorSettings.medium.max;
-  const lowColor = merged.low?.color ?? defaultColorSettings.low.color;
-  const mediumColor = merged.medium?.color ?? defaultColorSettings.medium.color;
-  const highColor = merged.high?.color ?? defaultColorSettings.high.color;
-
-  if (rating <= lowMax) {
-    return lowColor;
-  }
-
-  if (rating <= mediumMax) {
-    return mediumColor;
-  }
-
-  return highColor;
-};
-
-const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSettings }) => {
+const WheelOfLife = ({ categories }) => {
   const size = 800;
   const center = size / 2;
   const numCategories = categories.length;
   const categoryAnglePerSegment = (2 * Math.PI) / numCategories;
   
-  // Calculate all items to determine angles
-  const allItems = [];
-  categories.forEach((category, catIndex) => {
-    category.items.forEach((item) => {
-      allItems.push({ ...item, categoryIndex: catIndex, categoryColor: category.color, categoryName: category.name });
-    });
-  });
-  
-  const totalItems = allItems.length;
-  const itemAnglePerSegment = totalItems > 0 ? (2 * Math.PI) / totalItems : 0;
-  
   // Radius calculations
   const categoryOuterRadius = size * 0.45; // Outer circle for categories
   const categoryInnerRadius = size * 0.35; // Inner boundary for categories
-  const itemOuterRadius = size * 0.33; // Outer boundary for items
+  const itemOuterRadius = size * 0.33; // Outer boundary for items (same for all)
   const itemInnerRadius = size * 0.1; // Inner boundary for items
   const categoryTextRadius = categoryOuterRadius + 60;
-  const itemTextRadius = itemOuterRadius + 40;
-
-  // Function to get color based on rating, using category color as base
-  const getItemColor = (rating, level, maxLevel, categoryColor) => {
-    if (rating <= 0) {
-      return 'rgba(226, 232, 240, 0.75)';
-    }
-
-    // Use category color instead of threshold-based colors
-    const baseColor = categoryColor;
-    if (maxLevel <= 1) {
-      return mixWithWhite(baseColor, 0.16);
-    }
-
-    const progress = level / (maxLevel - 1);
-    const lightenAmount = 0.06 + progress * 0.18;
-    return mixWithWhite(baseColor, lightenAmount);
-  };
 
   // Function to create a segment path with custom angles
   const createSegmentPathCustom = (startAngle, endAngle, innerRadius, outerRadius) => {
@@ -124,13 +35,6 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
       A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 0 ${x1} ${y1}
       Z
     `;
-  };
-
-  // Function to create a segment path (for evenly distributed items)
-  const createSegmentPath = (segmentIndex, innerRadius, outerRadius, anglePerSegment) => {
-    const startAngle = segmentIndex * anglePerSegment - Math.PI / 2;
-    const endAngle = (segmentIndex + 1) * anglePerSegment - Math.PI / 2;
-    return createSegmentPathCustom(startAngle, endAngle, innerRadius, outerRadius);
   };
 
   // Function to get text position
@@ -174,22 +78,6 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
       {/* Background */}
       <circle cx={center} cy={center} r={categoryOuterRadius + 50} fill="#ffffff" />
       
-      {/* Grid circles for items */}
-      {[...Array(maxScore)].map((_, i) => {
-        const radius = itemInnerRadius + ((itemOuterRadius - itemInnerRadius) / maxScore) * (i + 1);
-        return (
-          <circle
-            key={`grid-${i}`}
-            cx={center}
-            cy={center}
-            r={radius}
-            fill="none"
-            stroke="#e0e0e0"
-            strokeWidth="1"
-          />
-        );
-      })}
-
       {/* Category outer circle grid */}
       <circle
         cx={center}
@@ -271,47 +159,40 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
         );
       })}
 
-      {/* Draw category segments (outer circle) */}
+      {/* Draw category segments (outer circle) - Hollow with white fill and colored frame */}
       {categories.map((category, catIndex) => {
-        const categoryColor = category.color;
-        const lightCategoryColor = mixWithWhite(categoryColor, 0.3);
+        const categoryColor = category.color || "#3b82f6";
         
         return (
           <g key={`category-${catIndex}`}>
             <path
-              d={createSegmentPath(catIndex, categoryInnerRadius, categoryOuterRadius, categoryAnglePerSegment)}
-              fill={lightCategoryColor}
-              stroke="#ffffff"
-              strokeWidth="2"
+              d={createSegmentPathCustom(
+                catIndex * categoryAnglePerSegment - Math.PI / 2,
+                (catIndex + 1) * categoryAnglePerSegment - Math.PI / 2,
+                categoryInnerRadius,
+                categoryOuterRadius
+              )}
+              fill="#ffffff"
+              stroke={categoryColor}
+              strokeWidth="3"
             />
           </g>
         );
       })}
 
-      {/* Draw item segments with ratings */}
+      {/* Draw item segments - all same size, only color differs */}
       {itemSegments.map((itemSegment) => {
-        const { itemIndex: segIndex, rating, categoryColor, itemStartAngle, itemEndAngle } = itemSegment;
-        const numBars = Math.min(rating, maxScore);
+        const { itemIndex: segIndex, color, itemStartAngle, itemEndAngle } = itemSegment;
+        const itemColor = color || "#3b82f6";
         
         return (
           <g key={`item-segment-${segIndex}`}>
-            {/* Draw filled bars based on rating */}
-            {[...Array(numBars)].map((_, level) => {
-              const innerRadius = itemInnerRadius + ((itemOuterRadius - itemInnerRadius) / maxScore) * level;
-              const outerRadius = itemInnerRadius + ((itemOuterRadius - itemInnerRadius) / maxScore) * (level + 1);
-              const path = createSegmentPathCustom(itemStartAngle, itemEndAngle, innerRadius, outerRadius);
-              const color = getItemColor(rating, level, numBars, categoryColor);
-
-              return (
-                <path
-                  key={`bar-${segIndex}-${level}`}
-                  d={path}
-                  fill={color}
-                  stroke="#ffffff"
-                  strokeWidth="1"
-                />
-              );
-            })}
+            <path
+              d={createSegmentPathCustom(itemStartAngle, itemEndAngle, itemInnerRadius, itemOuterRadius)}
+              fill={itemColor}
+              stroke="#ffffff"
+              strokeWidth="1"
+            />
           </g>
         );
       })}
@@ -331,6 +212,8 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
           textAnchor = 'end';
         }
 
+        const fontColor = category.fontColor || category.color || "#3b82f6";
+
         return (
           <g key={`category-label-${catIndex}`}>
             <text
@@ -338,7 +221,7 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
               y={y}
               textAnchor={textAnchor}
               dominantBaseline="middle"
-              fill={category.color}
+              fill={fontColor}
               fontSize="18"
               fontWeight="600"
               style={{ userSelect: 'none' }}
@@ -349,20 +232,12 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
         );
       })}
 
-      {/* Item labels */}
+      {/* Item labels - inside each segment */}
       {itemSegments.map((itemSegment) => {
-        const { itemIndex: segIndex, name, rating, categoryColor, itemCenterAngle } = itemSegment;
-        const { x, y, angle } = getTextPosition(itemCenterAngle, itemTextRadius);
-        const boundedRating = Math.max(0, Math.min(rating ?? 0, maxScore));
-
-        const ringStep = (itemOuterRadius - itemInnerRadius) / maxScore;
-        const barOuterRadius = boundedRating > 0 ? itemInnerRadius + ringStep * boundedRating : itemInnerRadius;
-        const connectorStartRadius = Math.min(barOuterRadius, itemOuterRadius);
-        const connectorEndRadius = itemTextRadius - 12;
-        const connectorStartX = center + connectorStartRadius * Math.cos(angle);
-        const connectorStartY = center + connectorStartRadius * Math.sin(angle);
-        const connectorEndX = center + connectorEndRadius * Math.cos(angle);
-        const connectorEndY = center + connectorEndRadius * Math.sin(angle);
+        const { itemIndex: segIndex, name, itemCenterAngle } = itemSegment;
+        // Position text inside the segment, closer to center
+        const textRadius = (itemInnerRadius + itemOuterRadius) / 2;
+        const { x, y, angle } = getTextPosition(itemCenterAngle, textRadius);
 
         // Determine text anchor based on position
         let textAnchor = 'middle';
@@ -376,24 +251,14 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
 
         return (
           <g key={`item-label-${segIndex}`}>
-            <line
-              x1={connectorStartX}
-              y1={connectorStartY}
-              x2={connectorEndX}
-              y2={connectorEndY}
-              stroke={categoryColor}
-              strokeWidth="1"
-              strokeLinecap="round"
-              opacity="0.5"
-            />
             <text
               x={x}
               y={y}
               textAnchor={textAnchor}
               dominantBaseline="middle"
-              fill="#333"
-              fontSize="12"
-              fontWeight="500"
+              fill="#ffffff"
+              fontSize="11"
+              fontWeight="600"
               style={{ userSelect: 'none' }}
             >
               {name}

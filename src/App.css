@@ -190,14 +190,25 @@
   background-color: white;
 }
 
-.category-color-input {
-  width: 60px;
-  height: 45px;
+.category-color-input,
+.item-color-input {
+  width: 50px;
+  height: 40px;
   padding: 0;
   border: 2px solid #ddd;
   border-radius: 6px;
   background-color: transparent;
   cursor: pointer;
+}
+
+.color-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+  align-items: center;
 }
 
 .items-list {

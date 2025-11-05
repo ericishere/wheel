@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import WheelOfLife from './WheelOfLife';
 import './App.css';
 
@@ -6,47 +6,52 @@ const defaultCategories = [
   {
     id: 1,
     name: "Security",
-    color: "#ef4444",
+    color: "#3b82f6",
+    fontColor: "#3b82f6",
     items: [
-      { name: "Vulnerability Management", rating: 6 },
-      { name: "Penetration Test", rating: 5 },
-      { name: "Data Loss Prevention", rating: 6 },
-      { name: "Incident Response", rating: 6 }
+      { name: "Vulnerability Management", color: "#3b82f6" },
+      { name: "Penetration Test", color: "#3b82f6" },
+      { name: "Data Loss Prevention", color: "#3b82f6" },
+      { name: "Incident Response", color: "#3b82f6" }
     ]
   },
   {
     id: 2,
     name: "Governance",
-    color: "#f59e0b",
+    color: "#3b82f6",
+    fontColor: "#3b82f6",
     items: [
-      { name: "Governance Risk Verification", rating: 5 },
-      { name: "Training", rating: 4 }
+      { name: "Governance Risk Verification", color: "#3b82f6" },
+      { name: "Training", color: "#3b82f6" }
     ]
   },
   {
     id: 3,
     name: "Engineering",
-    color: "#22c55e",
+    color: "#3b82f6",
+    fontColor: "#3b82f6",
     items: [
-      { name: "Engineering", rating: 4 },
-      { name: "Architecture", rating: 4 }
+      { name: "Engineering", color: "#3b82f6" },
+      { name: "Architecture", color: "#3b82f6" }
     ]
   },
   {
     id: 4,
     name: "Operations",
     color: "#3b82f6",
+    fontColor: "#3b82f6",
     items: [
-      { name: "Security Operation Center", rating: 5 },
-      { name: "DevSecOps", rating: 5 }
+      { name: "Security Operation Center", color: "#3b82f6" },
+      { name: "DevSecOps", color: "#3b82f6" }
     ]
   },
   {
     id: 5,
     name: "Management",
-    color: "#8b5cf6",
+    color: "#3b82f6",
+    fontColor: "#3b82f6",
     items: [
-      { name: "Project Management", rating: 6 }
+      { name: "Project Management", color: "#3b82f6" }
     ]
   }
 ];
@@ -61,12 +66,6 @@ const clampNumber = (value, min, max) => {
 function App() {
   const [categories, setCategories] = useState(defaultCategories);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [maxScore, setMaxScore] = useState(10);
-  const [lowThreshold, setLowThreshold] = useState(4);
-  const [mediumThreshold, setMediumThreshold] = useState(5);
-  const [lowColor, setLowColor] = useState('#ef4444');
-  const [mediumColor, setMediumColor] = useState('#f59e0b');
-  const [highColor, setHighColor] = useState('#22c55e');
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
 
@@ -79,6 +78,12 @@ function App() {
   const handleCategoryColorChange = (categoryId, value) => {
     setCategories(categories.map(cat => 
       cat.id === categoryId ? { ...cat, color: value } : cat
+    ));
+  };
+
+  const handleCategoryFontColorChange = (categoryId, value) => {
+    setCategories(categories.map(cat => 
+      cat.id === categoryId ? { ...cat, fontColor: value } : cat
     ));
   };
 
@@ -95,39 +100,27 @@ function App() {
     ));
   };
 
-  const handleRatingChange = (categoryId, itemIndex, value) => {
-    const parsedValue = Number.parseInt(value, 10);
-    const boundedValue = clampNumber(Number.isNaN(parsedValue) ? 0 : parsedValue, 0, maxScore);
+  const handleItemColorChange = (categoryId, itemIndex, value) => {
     setCategories(categories.map(cat => 
       cat.id === categoryId 
         ? {
             ...cat,
             items: cat.items.map((item, idx) => 
-              idx === itemIndex ? { ...item, rating: boundedValue } : item
+              idx === itemIndex ? { ...item, color: value } : item
             )
           }
         : cat
     ));
   };
 
-  const handleLowThresholdChange = (value) => {
-    const parsedValue = Number.parseInt(value, 10);
-    const safeValue = clampNumber(Number.isNaN(parsedValue) ? lowThreshold : parsedValue, 0, mediumThreshold);
-    setLowThreshold(safeValue);
-  };
-
-  const handleMediumThresholdChange = (value) => {
-    const parsedValue = Number.parseInt(value, 10);
-    const safeValue = clampNumber(Number.isNaN(parsedValue) ? mediumThreshold : parsedValue, lowThreshold, maxScore);
-    setMediumThreshold(safeValue);
-  };
-
   const addItem = (categoryId) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    const defaultColor = category?.color || "#3b82f6";
     setCategories(categories.map(cat => 
       cat.id === categoryId 
         ? {
             ...cat,
-            items: [...cat.items, { name: `New Item ${cat.items.length + 1}`, rating: 5 }]
+            items: [...cat.items, { name: `New Item ${cat.items.length + 1}`, color: defaultColor }]
           }
         : cat
     ));
@@ -175,26 +168,6 @@ function App() {
 
   const resetToDefaults = () => {
     setCategories(defaultCategories);
-    setMaxScore(10);
-    setLowThreshold(4);
-    setMediumThreshold(5);
-    setLowColor('#ef4444');
-    setMediumColor('#f59e0b');
-    setHighColor('#22c55e');
-  };
-
-  useEffect(() => {
-    setLowThreshold((current) => clampNumber(current, 0, Math.min(mediumThreshold, maxScore)));
-  }, [maxScore, mediumThreshold]);
-
-  useEffect(() => {
-    setMediumThreshold((current) => clampNumber(current, lowThreshold, maxScore));
-  }, [lowThreshold, maxScore]);
-
-  const colorSettings = {
-    low: { max: lowThreshold, color: lowColor },
-    medium: { max: mediumThreshold, color: mediumColor },
-    high: { color: highColor },
   };
 
   return (
@@ -218,76 +191,6 @@ function App() {
             <button onClick={resetToDefaults} className="btn btn-secondary">Reset to Defaults</button>
           </div>
           
-          <div className="max-score-control">
-            <label>
-              Max Score:
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={maxScore}
-                onChange={(e) => {
-                  const parsedValue = Number.parseInt(e.target.value, 10);
-                  const bounded = clampNumber(Number.isNaN(parsedValue) ? 10 : parsedValue, 1, 20);
-                  setMaxScore(bounded);
-                }}
-              />
-            </label>
-          </div>
-
-          <div className="color-thresholds">
-            <h3>Color Thresholds</h3>
-            <div className="threshold-row">
-              <label>
-                Low threshold (≤)
-                <input
-                  type="number"
-                  min="0"
-                  max={mediumThreshold}
-                  value={lowThreshold}
-                  onChange={(e) => handleLowThresholdChange(e.target.value)}
-                />
-              </label>
-              <label>
-                Medium threshold (≤)
-                <input
-                  type="number"
-                  min={lowThreshold}
-                  max={maxScore}
-                  value={mediumThreshold}
-                  onChange={(e) => handleMediumThresholdChange(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <div className="threshold-row">
-              <label>
-                Low color
-                <input
-                  type="color"
-                  value={lowColor}
-                  onChange={(e) => setLowColor(e.target.value)}
-                />
-              </label>
-              <label>
-                Medium color
-                <input
-                  type="color"
-                  value={mediumColor}
-                  onChange={(e) => setMediumColor(e.target.value)}
-                />
-              </label>
-              <label>
-                High color
-                <input
-                  type="color"
-                  value={highColor}
-                  onChange={(e) => setHighColor(e.target.value)}
-                />
-              </label>
-            </div>
-          </div>
-
           <div className="categories-list">
             {categories.map((category) => (
               <div key={category.id} className="category-section">
@@ -298,12 +201,24 @@ function App() {
                     onChange={(e) => handleCategoryNameChange(category.id, e.target.value)}
                     className="category-name-input"
                   />
-                  <input
-                    type="color"
-                    value={category.color}
-                    onChange={(e) => handleCategoryColorChange(category.id, e.target.value)}
-                    className="category-color-input"
-                  />
+                  <label className="color-label">
+                    Frame Color
+                    <input
+                      type="color"
+                      value={category.color}
+                      onChange={(e) => handleCategoryColorChange(category.id, e.target.value)}
+                      className="category-color-input"
+                    />
+                  </label>
+                  <label className="color-label">
+                    Font Color
+                    <input
+                      type="color"
+                      value={category.fontColor || category.color}
+                      onChange={(e) => handleCategoryFontColorChange(category.id, e.target.value)}
+                      className="category-color-input"
+                    />
+                  </label>
                 </div>
                 <div className="items-list">
                   {category.items.map((item, itemIndex) => (
@@ -315,14 +230,15 @@ function App() {
                           onChange={(e) => handleItemChange(category.id, itemIndex, e.target.value)}
                           className="item-input"
                         />
-                        <input
-                          type="number"
-                          min="0"
-                          max={maxScore}
-                          value={item.rating}
-                          onChange={(e) => handleRatingChange(category.id, itemIndex, e.target.value)}
-                          className="rating-input"
-                        />
+                        <label className="color-label">
+                          Color
+                          <input
+                            type="color"
+                            value={item.color || category.color}
+                            onChange={(e) => handleItemColorChange(category.id, itemIndex, e.target.value)}
+                            className="item-color-input"
+                          />
+                        </label>
                       </div>
                       <div className="item-actions">
                         <button
@@ -371,9 +287,7 @@ function App() {
         className={`wheel-container ${isFullscreen ? 'fullscreen' : ''}`}
       >
         <WheelOfLife 
-          categories={categories} 
-          maxScore={maxScore} 
-          colorSettings={colorSettings} 
+          categories={categories}
         />
       </div>
     </div>
