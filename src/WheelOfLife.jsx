@@ -280,17 +280,6 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
       {itemAngles.map((angleData, index) => {
         const category = categories[angleData.categoryIndex];
         const item = category.items[angleData.itemIndex];
-        const rating = Math.max(0, Math.min(item.rating, maxScore));
-
-        const ringStep = (maxInnerRadius - centerRadius) / maxScore;
-        const barOuterRadius = rating > 0 ? centerRadius + ringStep * rating : centerRadius;
-        const connectorStartRadius = Math.min(barOuterRadius, maxInnerRadius);
-        const connectorEndRadius = labelRadius - 12;
-        
-        const connectorStartX = center + connectorStartRadius * Math.cos(angleData.centerAngle);
-        const connectorStartY = center + connectorStartRadius * Math.sin(angleData.centerAngle);
-        const connectorEndX = center + connectorEndRadius * Math.cos(angleData.centerAngle);
-        const connectorEndY = center + connectorEndRadius * Math.sin(angleData.centerAngle);
         
         const labelX = center + labelRadius * Math.cos(angleData.centerAngle);
         const labelY = center + labelRadius * Math.sin(angleData.centerAngle);
@@ -307,15 +296,6 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
 
         return (
           <g key={`item-label-${index}`}>
-            <line
-              x1={connectorStartX}
-              y1={connectorStartY}
-              x2={connectorEndX}
-              y2={connectorEndY}
-              stroke="#94a3b8"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
             <text
               x={labelX}
               y={labelY}
@@ -332,20 +312,8 @@ const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSe
         );
       })}
 
-      {/* Center circle with label */}
+      {/* Center circle */}
       <circle cx={center} cy={center} r={centerRadius} fill="#ffffff" stroke="#cbd5e1" strokeWidth="3" />
-      <text
-        x={center}
-        y={center}
-        textAnchor="middle"
-        dominantBaseline="middle"
-        fill="#1e293b"
-        fontSize="16"
-        fontWeight="700"
-        style={{ userSelect: 'none' }}
-      >
-        WHEEL OF LIFE
-      </text>
     </svg>
   );
 };
