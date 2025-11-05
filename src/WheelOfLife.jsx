@@ -199,10 +199,10 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
         const category = categories[angleData.categoryIndex];
         const item = category.items[angleData.itemIndex];
         
-        // Position in the middle of the gap between inner circle and category ring
-        const gapMidRadius = (maxInnerRadius + categoryInnerRadius) / 2;
-        const labelX = center + gapMidRadius * Math.cos(angleData.centerAngle);
-        const labelY = center + gapMidRadius * Math.sin(angleData.centerAngle);
+        // Position closer to center - at 70% of the inner radius
+        const labelRadiusPosition = maxInnerRadius * 0.7;
+        const labelX = center + labelRadiusPosition * Math.cos(angleData.centerAngle);
+        const labelY = center + labelRadiusPosition * Math.sin(angleData.centerAngle);
 
         // Always use middle anchor for horizontal text
         const textAnchor = 'middle';
@@ -238,7 +238,7 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
                 y={startY + i * lineHeight}
                 textAnchor={textAnchor}
                 dominantBaseline="middle"
-                fill="#333"
+                fill="#ffffff"
                 fontSize="10"
                 fontWeight="600"
                 style={{ userSelect: 'none' }}
