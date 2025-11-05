@@ -60,22 +60,39 @@ const resolveBaseColor = (rating, colorSettings) => {
   return highColor;
 };
 
-const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultColorSettings }) => {
+const WheelOfLife = ({ categories, maxScore = 10, colorSettings = defaultColorSettings }) => {
   const size = 800;
   const center = size / 2;
-  const numSegments = items.length;
-  const anglePerSegment = (2 * Math.PI) / numSegments;
-  const maxRadius = size * 0.4;
-  const minRadius = size * 0.1;
-  const textRadius = maxRadius + 60;
+  const numCategories = categories.length;
+  const categoryAnglePerSegment = (2 * Math.PI) / numCategories;
+  
+  // Calculate all items to determine angles
+  const allItems = [];
+  categories.forEach((category, catIndex) => {
+    category.items.forEach((item) => {
+      allItems.push({ ...item, categoryIndex: catIndex, categoryColor: category.color, categoryName: category.name });
+    });
+  });
+  
+  const totalItems = allItems.length;
+  const itemAnglePerSegment = totalItems > 0 ? (2 * Math.PI) / totalItems : 0;
+  
+  // Radius calculations
+  const categoryOuterRadius = size * 0.45; // Outer circle for categories
+  const categoryInnerRadius = size * 0.35; // Inner boundary for categories
+  const itemOuterRadius = size * 0.33; // Outer boundary for items
+  const itemInnerRadius = size * 0.1; // Inner boundary for items
+  const categoryTextRadius = categoryOuterRadius + 60;
+  const itemTextRadius = itemOuterRadius + 40;
 
-  // Function to get color based on rating
-  const getColor = (rating, level, maxLevel) => {
+  // Function to get color based on rating, using category color as base
+  const getItemColor = (rating, level, maxLevel, categoryColor) => {
     if (rating <= 0) {
       return 'rgba(226, 232, 240, 0.75)';
     }
 
-    const baseColor = resolveBaseColor(rating, colorSettings);
+    // Use category color instead of threshold-based colors
+    const baseColor = categoryColor;
     if (maxLevel <= 1) {
       return mixWithWhite(baseColor, 0.16);
     }
@@ -85,11 +102,8 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
     return mixWithWhite(baseColor, lightenAmount);
   };
 
-  // Function to create a segment path
-  const createSegmentPath = (segmentIndex, innerRadius, outerRadius) => {
-    const startAngle = segmentIndex * anglePerSegment - Math.PI / 2;
-    const endAngle = (segmentIndex + 1) * anglePerSegment - Math.PI / 2;
-
+  // Function to create a segment path with custom angles
+  const createSegmentPathCustom = (startAngle, endAngle, innerRadius, outerRadius) => {
     const x1 = center + innerRadius * Math.cos(startAngle);
     const y1 = center + innerRadius * Math.sin(startAngle);
     const x2 = center + outerRadius * Math.cos(startAngle);
@@ -99,7 +113,8 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
     const x4 = center + innerRadius * Math.cos(endAngle);
     const y4 = center + innerRadius * Math.sin(endAngle);
 
-    const largeArcFlag = anglePerSegment > Math.PI ? 1 : 0;
+    const angleDiff = endAngle - startAngle;
+    const largeArcFlag = angleDiff > Math.PI ? 1 : 0;
 
     return `
       M ${x1} ${y1}
@@ -111,24 +126,57 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
     `;
   };
 
-  // Function to get text position and rotation
-  const getTextPosition = (segmentIndex) => {
-    // Center of the segment
-    const angle = (segmentIndex + 0.5) * anglePerSegment - Math.PI / 2;
+  // Function to create a segment path (for evenly distributed items)
+  const createSegmentPath = (segmentIndex, innerRadius, outerRadius, anglePerSegment) => {
+    const startAngle = segmentIndex * anglePerSegment - Math.PI / 2;
+    const endAngle = (segmentIndex + 1) * anglePerSegment - Math.PI / 2;
+    return createSegmentPathCustom(startAngle, endAngle, innerRadius, outerRadius);
+  };
+
+  // Function to get text position
+  const getTextPosition = (angle, textRadius) => {
     const x = center + textRadius * Math.cos(angle);
     const y = center + textRadius * Math.sin(angle);
-
     return { x, y, angle };
   };
+
+  // Calculate item positions within categories
+  let itemIndex = 0;
+  const itemSegments = [];
+  categories.forEach((category, catIndex) => {
+    const categoryStartAngle = catIndex * categoryAnglePerSegment - Math.PI / 2;
+    const categoryEndAngle = (catIndex + 1) * categoryAnglePerSegment - Math.PI / 2;
+    const categoryAngleRange = categoryEndAngle - categoryStartAngle;
+    const numItemsInCategory = category.items.length;
+    const itemAnglePerSegment = numItemsInCategory > 0 ? categoryAngleRange / numItemsInCategory : 0;
+    
+    category.items.forEach((item, itemLocalIndex) => {
+      const itemStartAngle = categoryStartAngle + itemLocalIndex * itemAnglePerSegment;
+      const itemEndAngle = categoryStartAngle + (itemLocalIndex + 1) * itemAnglePerSegment;
+      const itemCenterAngle = (itemStartAngle + itemEndAngle) / 2;
+      
+      itemSegments.push({
+        ...item,
+        categoryIndex: catIndex,
+        categoryColor: category.color,
+        categoryName: category.name,
+        itemIndex: itemIndex++,
+        itemStartAngle,
+        itemEndAngle,
+        itemCenterAngle,
+        itemAnglePerSegment
+      });
+    });
+  });
 
   return (
     <svg width={size*2} height={size} viewBox={`0 0 ${size} ${size}`}>
       {/* Background */}
-      <circle cx={center} cy={center} r={maxRadius + 50} fill="#ffffff" />
+      <circle cx={center} cy={center} r={categoryOuterRadius + 50} fill="#ffffff" />
       
-      {/* Grid circles */}
+      {/* Grid circles for items */}
       {[...Array(maxScore)].map((_, i) => {
-        const radius = minRadius + ((maxRadius - minRadius) / maxScore) * (i + 1);
+        const radius = itemInnerRadius + ((itemOuterRadius - itemInnerRadius) / maxScore) * (i + 1);
         return (
           <circle
             key={`grid-${i}`}
@@ -142,13 +190,31 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
         );
       })}
 
-      {/* Grid lines (radial) */}
-      {items.map((_, i) => {
-        const angle = i * anglePerSegment - Math.PI / 2;
-        const x1 = center + minRadius * Math.cos(angle);
-        const y1 = center + minRadius * Math.sin(angle);
-        const x2 = center + maxRadius * Math.cos(angle);
-        const y2 = center + maxRadius * Math.sin(angle);
+      {/* Category outer circle grid */}
+      <circle
+        cx={center}
+        cy={center}
+        r={categoryInnerRadius}
+        fill="none"
+        stroke="#d0d0d0"
+        strokeWidth="2"
+      />
+      <circle
+        cx={center}
+        cy={center}
+        r={categoryOuterRadius}
+        fill="none"
+        stroke="#d0d0d0"
+        strokeWidth="2"
+      />
+
+      {/* Grid lines for items (radial) */}
+      {itemSegments.map((itemSegment, i) => {
+        const angle = itemSegment.itemStartAngle;
+        const x1 = center + itemInnerRadius * Math.cos(angle);
+        const y1 = center + itemInnerRadius * Math.sin(angle);
+        const x2 = center + itemOuterRadius * Math.cos(angle);
+        const y2 = center + itemOuterRadius * Math.sin(angle);
         
         return (
           <line
@@ -162,24 +228,83 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
           />
         );
       })}
+      
+      {/* Draw closing line for last item in each category */}
+      {categories.map((category, catIndex) => {
+        const categoryEndAngle = (catIndex + 1) * categoryAnglePerSegment - Math.PI / 2;
+        const x1 = center + itemInnerRadius * Math.cos(categoryEndAngle);
+        const y1 = center + itemInnerRadius * Math.sin(categoryEndAngle);
+        const x2 = center + itemOuterRadius * Math.cos(categoryEndAngle);
+        const y2 = center + itemOuterRadius * Math.sin(categoryEndAngle);
+        
+        return (
+          <line
+            key={`category-closing-line-${catIndex}`}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke="#e0e0e0"
+            strokeWidth="1"
+          />
+        );
+      })}
 
-      {/* Segments with ratings */}
-      {items.map((item, segmentIndex) => {
-        const rating = ratings[segmentIndex];
+      {/* Category radial lines */}
+      {categories.map((_, i) => {
+        const angle = i * categoryAnglePerSegment - Math.PI / 2;
+        const x1 = center + categoryInnerRadius * Math.cos(angle);
+        const y1 = center + categoryInnerRadius * Math.sin(angle);
+        const x2 = center + categoryOuterRadius * Math.cos(angle);
+        const y2 = center + categoryOuterRadius * Math.sin(angle);
+        
+        return (
+          <line
+            key={`category-line-${i}`}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke="#d0d0d0"
+            strokeWidth="2"
+          />
+        );
+      })}
+
+      {/* Draw category segments (outer circle) */}
+      {categories.map((category, catIndex) => {
+        const categoryColor = category.color;
+        const lightCategoryColor = mixWithWhite(categoryColor, 0.3);
+        
+        return (
+          <g key={`category-${catIndex}`}>
+            <path
+              d={createSegmentPath(catIndex, categoryInnerRadius, categoryOuterRadius, categoryAnglePerSegment)}
+              fill={lightCategoryColor}
+              stroke="#ffffff"
+              strokeWidth="2"
+            />
+          </g>
+        );
+      })}
+
+      {/* Draw item segments with ratings */}
+      {itemSegments.map((itemSegment) => {
+        const { itemIndex: segIndex, rating, categoryColor, itemStartAngle, itemEndAngle } = itemSegment;
         const numBars = Math.min(rating, maxScore);
         
         return (
-          <g key={`segment-${segmentIndex}`}>
+          <g key={`item-segment-${segIndex}`}>
             {/* Draw filled bars based on rating */}
             {[...Array(numBars)].map((_, level) => {
-              const innerRadius = minRadius + ((maxRadius - minRadius) / maxScore) * level;
-              const outerRadius = minRadius + ((maxRadius - minRadius) / maxScore) * (level + 1);
-              const path = createSegmentPath(segmentIndex, innerRadius, outerRadius);
-              const color = getColor(rating, level, numBars);
+              const innerRadius = itemInnerRadius + ((itemOuterRadius - itemInnerRadius) / maxScore) * level;
+              const outerRadius = itemInnerRadius + ((itemOuterRadius - itemInnerRadius) / maxScore) * (level + 1);
+              const path = createSegmentPathCustom(itemStartAngle, itemEndAngle, innerRadius, outerRadius);
+              const color = getItemColor(rating, level, numBars, categoryColor);
 
               return (
                 <path
-                  key={`bar-${segmentIndex}-${level}`}
+                  key={`bar-${segIndex}-${level}`}
                   d={path}
                   fill={color}
                   stroke="#ffffff"
@@ -191,16 +316,49 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
         );
       })}
 
-      {/* Labels */}
-      {items.map((item, index) => {
-        const { x, y } = getTextPosition(index);
-        const angle = (index + 0.5) * anglePerSegment - Math.PI / 2;
-        const rating = Math.max(0, Math.min(ratings[index] ?? 0, maxScore));
+      {/* Category labels */}
+      {categories.map((category, catIndex) => {
+        const categoryCenterAngle = (catIndex + 0.5) * categoryAnglePerSegment - Math.PI / 2;
+        const { x, y, angle } = getTextPosition(categoryCenterAngle, categoryTextRadius);
+        
+        // Determine text anchor based on position
+        let textAnchor = 'middle';
+        const angleInDegrees = ((angle + Math.PI / 2) * 180) / Math.PI % 360;
 
-        const ringStep = (maxRadius - minRadius) / maxScore;
-        const barOuterRadius = rating > 0 ? minRadius + ringStep * rating : minRadius;
-        const connectorStartRadius = Math.min(barOuterRadius, maxRadius);
-        const connectorEndRadius = textRadius - 12;
+        if (angleInDegrees > 10 && angleInDegrees < 170) {
+          textAnchor = 'start';
+        } else if (angleInDegrees > 190 && angleInDegrees < 350) {
+          textAnchor = 'end';
+        }
+
+        return (
+          <g key={`category-label-${catIndex}`}>
+            <text
+              x={x}
+              y={y}
+              textAnchor={textAnchor}
+              dominantBaseline="middle"
+              fill={category.color}
+              fontSize="18"
+              fontWeight="600"
+              style={{ userSelect: 'none' }}
+            >
+              {category.name}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Item labels */}
+      {itemSegments.map((itemSegment) => {
+        const { itemIndex: segIndex, name, rating, categoryColor, itemCenterAngle } = itemSegment;
+        const { x, y, angle } = getTextPosition(itemCenterAngle, itemTextRadius);
+        const boundedRating = Math.max(0, Math.min(rating ?? 0, maxScore));
+
+        const ringStep = (itemOuterRadius - itemInnerRadius) / maxScore;
+        const barOuterRadius = boundedRating > 0 ? itemInnerRadius + ringStep * boundedRating : itemInnerRadius;
+        const connectorStartRadius = Math.min(barOuterRadius, itemOuterRadius);
+        const connectorEndRadius = itemTextRadius - 12;
         const connectorStartX = center + connectorStartRadius * Math.cos(angle);
         const connectorStartY = center + connectorStartRadius * Math.sin(angle);
         const connectorEndX = center + connectorEndRadius * Math.cos(angle);
@@ -217,15 +375,16 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
         }
 
         return (
-          <g key={`label-${index}`}>
+          <g key={`item-label-${segIndex}`}>
             <line
               x1={connectorStartX}
               y1={connectorStartY}
               x2={connectorEndX}
               y2={connectorEndY}
-              stroke="#94a3b8"
+              stroke={categoryColor}
               strokeWidth="1"
               strokeLinecap="round"
+              opacity="0.5"
             />
             <text
               x={x}
@@ -233,18 +392,18 @@ const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultCol
               textAnchor={textAnchor}
               dominantBaseline="middle"
               fill="#333"
-              fontSize="14"
+              fontSize="12"
               fontWeight="500"
               style={{ userSelect: 'none' }}
             >
-              {item}
+              {name}
             </text>
           </g>
         );
       })}
 
       {/* Center circle */}
-      <circle cx={center} cy={center} r={minRadius} fill="#ffffff" stroke="#e0e0e0" strokeWidth="2" />
+      <circle cx={center} cy={center} r={itemInnerRadius} fill="#ffffff" stroke="#e0e0e0" strokeWidth="2" />
     </svg>
   );
 };

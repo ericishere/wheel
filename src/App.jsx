@@ -2,21 +2,54 @@ import React, { useState, useRef, useEffect } from 'react';
 import WheelOfLife from './WheelOfLife';
 import './App.css';
 
-const defaultItems = [
-  "Vulnerability Management",
-  "Penetration Test",
-  "Governance Risk Verification",
-  "Engineering",
-  "Architecture",
-  "Project Management",
-  "Training",
-  "Data Loss Prevention",
-  "Incident Response",
-  "Security Operation Center",
-  "DevSecOps"  
+const defaultCategories = [
+  {
+    id: 1,
+    name: "Security",
+    color: "#ef4444",
+    items: [
+      { name: "Vulnerability Management", rating: 6 },
+      { name: "Penetration Test", rating: 5 },
+      { name: "Data Loss Prevention", rating: 6 },
+      { name: "Incident Response", rating: 6 }
+    ]
+  },
+  {
+    id: 2,
+    name: "Governance",
+    color: "#f59e0b",
+    items: [
+      { name: "Governance Risk Verification", rating: 5 },
+      { name: "Training", rating: 4 }
+    ]
+  },
+  {
+    id: 3,
+    name: "Engineering",
+    color: "#22c55e",
+    items: [
+      { name: "Engineering", rating: 4 },
+      { name: "Architecture", rating: 4 }
+    ]
+  },
+  {
+    id: 4,
+    name: "Operations",
+    color: "#3b82f6",
+    items: [
+      { name: "Security Operation Center", rating: 5 },
+      { name: "DevSecOps", rating: 5 }
+    ]
+  },
+  {
+    id: 5,
+    name: "Management",
+    color: "#8b5cf6",
+    items: [
+      { name: "Project Management", rating: 6 }
+    ]
+  }
 ];
-
-const defaultRatings = [6, 5, 5, 4, 4, 6, 4, 6, 6, 5, 5];
 
 const clampNumber = (value, min, max) => {
   const numeric = Number.isFinite(value) ? value : min;
@@ -26,8 +59,7 @@ const clampNumber = (value, min, max) => {
 };
 
 function App() {
-  const [items, setItems] = useState(defaultItems);
-  const [ratings, setRatings] = useState(defaultRatings);
+  const [categories, setCategories] = useState(defaultCategories);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [maxScore, setMaxScore] = useState(10);
   const [lowThreshold, setLowThreshold] = useState(4);
@@ -38,18 +70,44 @@ function App() {
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
 
-  const handleItemChange = (index, value) => {
-    const newItems = [...items];
-    newItems[index] = value;
-    setItems(newItems);
+  const handleCategoryNameChange = (categoryId, value) => {
+    setCategories(categories.map(cat => 
+      cat.id === categoryId ? { ...cat, name: value } : cat
+    ));
   };
 
-  const handleRatingChange = (index, value) => {
+  const handleCategoryColorChange = (categoryId, value) => {
+    setCategories(categories.map(cat => 
+      cat.id === categoryId ? { ...cat, color: value } : cat
+    ));
+  };
+
+  const handleItemChange = (categoryId, itemIndex, value) => {
+    setCategories(categories.map(cat => 
+      cat.id === categoryId 
+        ? {
+            ...cat,
+            items: cat.items.map((item, idx) => 
+              idx === itemIndex ? { ...item, name: value } : item
+            )
+          }
+        : cat
+    ));
+  };
+
+  const handleRatingChange = (categoryId, itemIndex, value) => {
     const parsedValue = Number.parseInt(value, 10);
     const boundedValue = clampNumber(Number.isNaN(parsedValue) ? 0 : parsedValue, 0, maxScore);
-    const newRatings = [...ratings];
-    newRatings[index] = boundedValue;
-    setRatings(newRatings);
+    setCategories(categories.map(cat => 
+      cat.id === categoryId 
+        ? {
+            ...cat,
+            items: cat.items.map((item, idx) => 
+              idx === itemIndex ? { ...item, rating: boundedValue } : item
+            )
+          }
+        : cat
+    ));
   };
 
   const handleLowThresholdChange = (value) => {
@@ -64,33 +122,41 @@ function App() {
     setMediumThreshold(safeValue);
   };
 
-  const addItem = () => {
-    setItems([...items, `New Item ${items.length + 1}`]);
-    setRatings([...ratings, 5]);
+  const addItem = (categoryId) => {
+    setCategories(categories.map(cat => 
+      cat.id === categoryId 
+        ? {
+            ...cat,
+            items: [...cat.items, { name: `New Item ${cat.items.length + 1}`, rating: 5 }]
+          }
+        : cat
+    ));
   };
 
-  const removeItem = (index) => {
-    setItems(items.filter((_, i) => i !== index));
-    setRatings(ratings.filter((_, i) => i !== index));
+  const removeItem = (categoryId, itemIndex) => {
+    setCategories(categories.map(cat => 
+      cat.id === categoryId 
+        ? {
+            ...cat,
+            items: cat.items.filter((_, i) => i !== itemIndex)
+          }
+        : cat
+    ));
   };
 
-  const moveItem = (index, direction) => {
-    const targetIndex = index + direction;
-    if (targetIndex < 0 || targetIndex >= items.length) {
-      return;
-    }
+  const moveItem = (categoryId, itemIndex, direction) => {
+    setCategories(categories.map(cat => {
+      if (cat.id !== categoryId) return cat;
+      
+      const targetIndex = itemIndex + direction;
+      if (targetIndex < 0 || targetIndex >= cat.items.length) {
+        return cat;
+      }
 
-    setItems((current) => {
-      const next = [...current];
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      return next;
-    });
-
-    setRatings((current) => {
-      const next = [...current];
-      [next[index], next[targetIndex]] = [next[targetIndex], next[index]];
-      return next;
-    });
+      const newItems = [...cat.items];
+      [newItems[itemIndex], newItems[targetIndex]] = [newItems[targetIndex], newItems[itemIndex]];
+      return { ...cat, items: newItems };
+    }));
   };
 
   const toggleFullscreen = () => {
@@ -108,8 +174,7 @@ function App() {
   };
 
   const resetToDefaults = () => {
-    setItems(defaultItems);
-    setRatings(defaultRatings);
+    setCategories(defaultCategories);
     setMaxScore(10);
     setLowThreshold(4);
     setMediumThreshold(5);
@@ -223,55 +288,81 @@ function App() {
             </div>
           </div>
 
-          <div className="items-list">
-            {items.map((item, index) => (
-              <div key={index} className="item-control">
-                <div className="item-fields">
+          <div className="categories-list">
+            {categories.map((category) => (
+              <div key={category.id} className="category-section">
+                <div className="category-header">
                   <input
                     type="text"
-                    value={item}
-                    onChange={(e) => handleItemChange(index, e.target.value)}
-                    className="item-input"
+                    value={category.name}
+                    onChange={(e) => handleCategoryNameChange(category.id, e.target.value)}
+                    className="category-name-input"
                   />
                   <input
-                    type="number"
-                    min="0"
-                    max={maxScore}
-                    value={ratings[index]}
-                    onChange={(e) => handleRatingChange(index, e.target.value)}
-                    className="rating-input"
+                    type="color"
+                    value={category.color}
+                    onChange={(e) => handleCategoryColorChange(category.id, e.target.value)}
+                    className="category-color-input"
                   />
                 </div>
-                <div className="item-actions">
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    onClick={() => moveItem(index, -1)}
-                    disabled={index === 0}
-                    aria-label={`Move ${item} up`}
-                  >
-                    ↑
-                  </button>
-                  <button
-                    type="button"
-                    className="icon-btn"
-                    onClick={() => moveItem(index, 1)}
-                    disabled={index === items.length - 1}
-                    aria-label={`Move ${item} down`}
-                  >
-                    ↓
-                  </button>
-                  <button type="button" onClick={() => removeItem(index)} className="btn btn-danger remove-btn">
-                    Remove
-                  </button>
+                <div className="items-list">
+                  {category.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="item-control">
+                      <div className="item-fields">
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => handleItemChange(category.id, itemIndex, e.target.value)}
+                          className="item-input"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max={maxScore}
+                          value={item.rating}
+                          onChange={(e) => handleRatingChange(category.id, itemIndex, e.target.value)}
+                          className="rating-input"
+                        />
+                      </div>
+                      <div className="item-actions">
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          onClick={() => moveItem(category.id, itemIndex, -1)}
+                          disabled={itemIndex === 0}
+                          aria-label={`Move ${item.name} up`}
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-btn"
+                          onClick={() => moveItem(category.id, itemIndex, 1)}
+                          disabled={itemIndex === category.items.length - 1}
+                          aria-label={`Move ${item.name} down`}
+                        >
+                          ↓
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => removeItem(category.id, itemIndex)} 
+                          className="btn btn-danger remove-btn"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+                <button 
+                  onClick={() => addItem(category.id)} 
+                  className="btn btn-primary add-item-btn"
+                >
+                  Add Item to {category.name}
+                </button>
               </div>
             ))}
           </div>
-
-          <button onClick={addItem} className="btn btn-primary add-item-btn">
-            Add Item
-          </button>
         </div>
       )}
 
@@ -279,7 +370,11 @@ function App() {
         ref={wheelRef} 
         className={`wheel-container ${isFullscreen ? 'fullscreen' : ''}`}
       >
-        <WheelOfLife items={items} ratings={ratings} maxScore={maxScore} colorSettings={colorSettings} />
+        <WheelOfLife 
+          categories={categories} 
+          maxScore={maxScore} 
+          colorSettings={colorSettings} 
+        />
       </div>
     </div>
   );
