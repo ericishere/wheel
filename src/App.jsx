@@ -58,6 +58,9 @@ function App() {
   const [midColor, setMidColor] = useState('#ffa366');
   const [highColor, setHighColor] = useState('#22c55e');
   const [categoryLabelColor, setCategoryLabelColor] = useState('#000000');
+  const [itemFontSize, setItemFontSize] = useState(14);
+  const [itemLineHeight, setItemLineHeight] = useState(14);
+  const [categoryFontSize, setCategoryFontSize] = useState(20);
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
 
@@ -170,6 +173,9 @@ function App() {
     setMidColor('#ffa366');
     setHighColor('#22c55e');
     setCategoryLabelColor('#000000');
+    setItemFontSize(14);
+    setItemLineHeight(14);
+    setCategoryFontSize(20);
   };
 
   const colorSettings = {
@@ -234,6 +240,42 @@ function App() {
                   type="color"
                   value={categoryLabelColor}
                   onChange={(e) => setCategoryLabelColor(e.target.value)}
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="font-settings">
+            <h3>Font Settings</h3>
+            <div className="threshold-row">
+              <label>
+                Item Font Size
+                <input
+                  type="number"
+                  min="8"
+                  max="24"
+                  value={itemFontSize}
+                  onChange={(e) => setItemFontSize(Number(e.target.value))}
+                />
+              </label>
+              <label>
+                Item Line Height
+                <input
+                  type="number"
+                  min="8"
+                  max="30"
+                  value={itemLineHeight}
+                  onChange={(e) => setItemLineHeight(Number(e.target.value))}
+                />
+              </label>
+              <label>
+                Category Font Size
+                <input
+                  type="number"
+                  min="12"
+                  max="32"
+                  value={categoryFontSize}
+                  onChange={(e) => setCategoryFontSize(Number(e.target.value))}
                 />
               </label>
             </div>
@@ -329,6 +371,9 @@ function App() {
           categories={categories} 
           colorSettings={colorSettings} 
           categoryLabelColor={categoryLabelColor}
+          itemFontSize={itemFontSize}
+          itemLineHeight={itemLineHeight}
+          categoryFontSize={categoryFontSize}
         />
       </div>
     </div>

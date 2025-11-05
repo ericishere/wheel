@@ -6,7 +6,14 @@ const defaultColorSettings = {
   high: '#22c55e',
 };
 
-const WheelOfLife = ({ categories, colorSettings = defaultColorSettings, categoryLabelColor = '#000000' }) => {
+const WheelOfLife = ({ 
+  categories, 
+  colorSettings = defaultColorSettings, 
+  categoryLabelColor = '#000000',
+  itemFontSize = 14,
+  itemLineHeight = 14,
+  categoryFontSize = 20
+}) => {
   const size = 900;
   const center = size / 2;
   
@@ -184,7 +191,7 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings, categor
             textAnchor="middle"
             dominantBaseline="middle"
             fill={categoryLabelColor}
-            fontSize="16"
+            fontSize={categoryFontSize}
             fontWeight="700"
             transform={`rotate(${textAngle}, ${x}, ${y})`}
             style={{ userSelect: 'none', textTransform: 'uppercase', letterSpacing: '1px' }}
@@ -226,8 +233,7 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings, categor
           lines.push(currentLine);
         }
 
-        const lineHeight = 11;
-        const startY = labelY - ((lines.length - 1) * lineHeight) / 2;
+        const startY = labelY - ((lines.length - 1) * itemLineHeight) / 2;
 
         return (
           <g key={`item-label-${index}`}>
@@ -235,11 +241,11 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings, categor
               <text
                 key={i}
                 x={labelX}
-                y={startY + i * lineHeight}
+                y={startY + i * itemLineHeight}
                 textAnchor={textAnchor}
                 dominantBaseline="middle"
                 fill="#ffffff"
-                fontSize="10"
+                fontSize={itemFontSize}
                 fontWeight="600"
                 style={{ userSelect: 'none' }}
               >
