@@ -199,41 +199,34 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
         const category = categories[angleData.categoryIndex];
         const item = category.items[angleData.itemIndex];
         
-        // Position at the edge of inner circle
-        const labelRadius = maxInnerRadius + 15;
-        const labelX = center + labelRadius * Math.cos(angleData.centerAngle);
-        const labelY = center + labelRadius * Math.sin(angleData.centerAngle);
+        // Position in the middle of the gap between inner circle and category ring
+        const gapMidRadius = (maxInnerRadius + categoryInnerRadius) / 2;
+        const labelX = center + gapMidRadius * Math.cos(angleData.centerAngle);
+        const labelY = center + gapMidRadius * Math.sin(angleData.centerAngle);
 
-        // Determine text anchor based on position (horizontal text)
-        let textAnchor = 'middle';
-        const angleInDegrees = ((angleData.centerAngle + Math.PI / 2) * 180) / Math.PI % 360;
+        // Always use middle anchor for horizontal text
+        const textAnchor = 'middle';
 
-        if (angleInDegrees > 10 && angleInDegrees < 170) {
-          textAnchor = 'start';
-        } else if (angleInDegrees > 190 && angleInDegrees < 350) {
-          textAnchor = 'end';
-        }
-
-        // Wrap text if too long (split at spaces or parentheses)
-        const maxCharsPerLine = 18;
-        const words = item.name.split(/(\s+|\(|\))/g).filter(w => w.trim());
+        // Wrap text if too long
+        const maxCharsPerLine = 15;
+        const words = item.name.split(' ');
         const lines = [];
         let currentLine = '';
 
         words.forEach(word => {
-          const testLine = currentLine + word;
+          const testLine = currentLine ? currentLine + ' ' + word : word;
           if (testLine.length > maxCharsPerLine && currentLine.length > 0) {
-            lines.push(currentLine.trim());
+            lines.push(currentLine);
             currentLine = word;
           } else {
             currentLine = testLine;
           }
         });
-        if (currentLine.trim()) {
-          lines.push(currentLine.trim());
+        if (currentLine) {
+          lines.push(currentLine);
         }
 
-        const lineHeight = 12;
+        const lineHeight = 11;
         const startY = labelY - ((lines.length - 1) * lineHeight) / 2;
 
         return (
@@ -246,8 +239,8 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
                 textAnchor={textAnchor}
                 dominantBaseline="middle"
                 fill="#333"
-                fontSize="11"
-                fontWeight="500"
+                fontSize="10"
+                fontWeight="600"
                 style={{ userSelect: 'none' }}
               >
                 {line}
