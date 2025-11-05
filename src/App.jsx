@@ -3,20 +3,20 @@ import WheelOfLife from './WheelOfLife';
 import './App.css';
 
 const defaultItems = [
-  "Data Loss Prevention",
   "Vulnerability Management",
-  "Governance Risk Verification",
-  "Architecture",
   "Penetration Test",
-  "Project Management",
-  "Incident Response",
+  "Governance Risk Verification",
   "Engineering",
-  "DevSecOps",
+  "Architecture",
+  "Project Management",
   "Training",
-  "Security Operation Center"
+  "Data Loss Prevention",
+  "Incident Response",
+  "Security Operation Center",
+  "DevSecOps"  
 ];
 
-const defaultRatings = [6, 6, 5, 4, 5, 6, 6, 4, 5, 4, 5];
+const defaultRatings = [6, 5, 5, 4, 4, 6, 4, 6, 6, 5, 5];
 
 const clampNumber = (value, min, max) => {
   const numeric = Number.isFinite(value) ? value : min;
