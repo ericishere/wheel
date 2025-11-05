@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import WheelOfLife from './WheelOfLife';
 import './App.css';
 
@@ -6,70 +6,62 @@ const defaultCategories = [
   {
     id: 1,
     name: "IDENTIFY",
-    color: "#5DADE2",
+    color: "#2196F3",
+    fontColor: "#000000",
     items: [
-      { id: 1, name: "Asset Management", rating: 6 },
-      { id: 2, name: "Risk Assessment", rating: 5 },
-      { id: 3, name: "Governance", rating: 5 }
+      { id: 1, name: "Asset Management", color: "#BBDEFB" },
+      { id: 2, name: "Risk Assessment", color: "#90CAF9" },
+      { id: 3, name: "Governance", color: "#64B5F6" }
     ]
   },
   {
     id: 2,
     name: "PROTECT",
-    color: "#AF7AC5",
+    color: "#2196F3",
+    fontColor: "#000000",
     items: [
-      { id: 4, name: "Access Control", rating: 7 },
-      { id: 5, name: "Data Security", rating: 6 },
-      { id: 6, name: "Training & Awareness", rating: 4 }
+      { id: 4, name: "Access Control", color: "#42A5F5" },
+      { id: 5, name: "Data Security", color: "#2196F3" },
+      { id: 6, name: "Training", color: "#1E88E5" }
     ]
   },
   {
     id: 3,
     name: "DETECT",
-    color: "#F39C12",
+    color: "#2196F3",
+    fontColor: "#000000",
     items: [
-      { id: 7, name: "Anomalies & Events", rating: 6 },
-      { id: 8, name: "Continuous Monitoring", rating: 5 }
+      { id: 7, name: "Anomalies & Events", color: "#1976D2" },
+      { id: 8, name: "Monitoring", color: "#1565C0" }
     ]
   },
   {
     id: 4,
     name: "RESPOND",
-    color: "#EC7063",
+    color: "#2196F3",
+    fontColor: "#000000",
     items: [
-      { id: 9, name: "Response Planning", rating: 6 },
-      { id: 10, name: "Communications", rating: 5 },
-      { id: 11, name: "Analysis", rating: 6 }
+      { id: 9, name: "Response Planning", color: "#0D47A1" },
+      { id: 10, name: "Communications", color: "#82B1FF" },
+      { id: 11, name: "Analysis", color: "#448AFF" }
     ]
   },
   {
     id: 5,
     name: "RECOVER",
-    color: "#52BE80",
+    color: "#2196F3",
+    fontColor: "#000000",
     items: [
-      { id: 12, name: "Recovery Planning", rating: 5 },
-      { id: 13, name: "Improvements", rating: 4 },
-      { id: 14, name: "Communications", rating: 5 }
+      { id: 12, name: "Recovery Planning", color: "#2979FF" },
+      { id: 13, name: "Improvements", color: "#2962FF" },
+      { id: 14, name: "Communications", color: "#0091EA" }
     ]
   }
 ];
 
-const clampNumber = (value, min, max) => {
-  const numeric = Number.isFinite(value) ? value : min;
-  if (numeric < min) return min;
-  if (numeric > max) return max;
-  return numeric;
-};
-
 function App() {
   const [categories, setCategories] = useState(defaultCategories);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [maxScore, setMaxScore] = useState(10);
-  const [lowThreshold, setLowThreshold] = useState(4);
-  const [mediumThreshold, setMediumThreshold] = useState(5);
-  const [lowColor, setLowColor] = useState('#ef4444');
-  const [mediumColor, setMediumColor] = useState('#f59e0b');
-  const [highColor, setHighColor] = useState('#22c55e');
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
 
@@ -82,6 +74,12 @@ function App() {
   const handleCategoryColorChange = (categoryId, value) => {
     setCategories(categories.map(cat => 
       cat.id === categoryId ? { ...cat, color: value } : cat
+    ));
+  };
+
+  const handleCategoryFontColorChange = (categoryId, value) => {
+    setCategories(categories.map(cat => 
+      cat.id === categoryId ? { ...cat, fontColor: value } : cat
     ));
   };
 
@@ -99,16 +97,13 @@ function App() {
     }));
   };
 
-  const handleItemRatingChange = (categoryId, itemId, value) => {
-    const parsedValue = Number.parseInt(value, 10);
-    const boundedValue = clampNumber(Number.isNaN(parsedValue) ? 0 : parsedValue, 0, maxScore);
-    
+  const handleItemColorChange = (categoryId, itemId, value) => {
     setCategories(categories.map(cat => {
       if (cat.id === categoryId) {
         return {
           ...cat,
           items: cat.items.map(item => 
-            item.id === itemId ? { ...item, rating: boundedValue } : item
+            item.id === itemId ? { ...item, color: value } : item
           )
         };
       }
@@ -121,8 +116,9 @@ function App() {
     setCategories([...categories, {
       id: newId,
       name: `Category ${categories.length + 1}`,
-      color: '#' + Math.floor(Math.random()*16777215).toString(16),
-      items: [{ id: Date.now(), name: 'New Item', rating: 5 }]
+      color: '#2196F3',
+      fontColor: '#000000',
+      items: [{ id: Date.now(), name: 'New Item', color: '#BBDEFB' }]
     }]);
   };
 
@@ -142,7 +138,7 @@ function App() {
           : 1;
         return {
           ...cat,
-          items: [...cat.items, { id: newItemId, name: 'New Item', rating: 5 }]
+          items: [...cat.items, { id: newItemId, name: 'New Item', color: '#BBDEFB' }]
         };
       }
       return cat;
@@ -165,18 +161,6 @@ function App() {
     }));
   };
 
-  const handleLowThresholdChange = (value) => {
-    const parsedValue = Number.parseInt(value, 10);
-    const safeValue = clampNumber(Number.isNaN(parsedValue) ? lowThreshold : parsedValue, 0, mediumThreshold);
-    setLowThreshold(safeValue);
-  };
-
-  const handleMediumThresholdChange = (value) => {
-    const parsedValue = Number.parseInt(value, 10);
-    const safeValue = clampNumber(Number.isNaN(parsedValue) ? mediumThreshold : parsedValue, lowThreshold, maxScore);
-    setMediumThreshold(safeValue);
-  };
-
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
       wheelRef.current?.requestFullscreen().then(() => {
@@ -193,26 +177,6 @@ function App() {
 
   const resetToDefaults = () => {
     setCategories(defaultCategories);
-    setMaxScore(10);
-    setLowThreshold(4);
-    setMediumThreshold(5);
-    setLowColor('#ef4444');
-    setMediumColor('#f59e0b');
-    setHighColor('#22c55e');
-  };
-
-  useEffect(() => {
-    setLowThreshold((current) => clampNumber(current, 0, Math.min(mediumThreshold, maxScore)));
-  }, [maxScore, mediumThreshold]);
-
-  useEffect(() => {
-    setMediumThreshold((current) => clampNumber(current, lowThreshold, maxScore));
-  }, [lowThreshold, maxScore]);
-
-  const colorSettings = {
-    low: { max: lowThreshold, color: lowColor },
-    medium: { max: mediumThreshold, color: mediumColor },
-    high: { color: highColor },
   };
 
   return (
@@ -235,76 +199,6 @@ function App() {
             <h2>Customization</h2>
             <button onClick={resetToDefaults} className="btn btn-secondary">Reset to Defaults</button>
           </div>
-          
-          <div className="max-score-control">
-            <label>
-              Max Score:
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={maxScore}
-                onChange={(e) => {
-                  const parsedValue = Number.parseInt(e.target.value, 10);
-                  const bounded = clampNumber(Number.isNaN(parsedValue) ? 10 : parsedValue, 1, 20);
-                  setMaxScore(bounded);
-                }}
-              />
-            </label>
-          </div>
-
-          <div className="color-thresholds">
-            <h3>Item Color Thresholds (for inner rings)</h3>
-            <div className="threshold-row">
-              <label>
-                Low threshold (≤)
-                <input
-                  type="number"
-                  min="0"
-                  max={mediumThreshold}
-                  value={lowThreshold}
-                  onChange={(e) => handleLowThresholdChange(e.target.value)}
-                />
-              </label>
-              <label>
-                Medium threshold (≤)
-                <input
-                  type="number"
-                  min={lowThreshold}
-                  max={maxScore}
-                  value={mediumThreshold}
-                  onChange={(e) => handleMediumThresholdChange(e.target.value)}
-                />
-              </label>
-            </div>
-
-            <div className="threshold-row">
-              <label>
-                Low color
-                <input
-                  type="color"
-                  value={lowColor}
-                  onChange={(e) => setLowColor(e.target.value)}
-                />
-              </label>
-              <label>
-                Medium color
-                <input
-                  type="color"
-                  value={mediumColor}
-                  onChange={(e) => setMediumColor(e.target.value)}
-                />
-              </label>
-              <label>
-                High color
-                <input
-                  type="color"
-                  value={highColor}
-                  onChange={(e) => setHighColor(e.target.value)}
-                />
-              </label>
-            </div>
-          </div>
 
           <div className="categories-section">
             <h3>Categories & Items</h3>
@@ -320,11 +214,20 @@ function App() {
                     placeholder="Category Name"
                   />
                   <label className="category-color-label">
-                    Color:
+                    Border Color:
                     <input
                       type="color"
                       value={category.color}
                       onChange={(e) => handleCategoryColorChange(category.id, e.target.value)}
+                      className="category-color-input"
+                    />
+                  </label>
+                  <label className="category-color-label">
+                    Font Color:
+                    <input
+                      type="color"
+                      value={category.fontColor || '#000000'}
+                      onChange={(e) => handleCategoryFontColorChange(category.id, e.target.value)}
                       className="category-color-input"
                     />
                   </label>
@@ -348,14 +251,15 @@ function App() {
                           className="item-input"
                           placeholder="Item Name"
                         />
-                        <input
-                          type="number"
-                          min="0"
-                          max={maxScore}
-                          value={item.rating}
-                          onChange={(e) => handleItemRatingChange(category.id, item.id, e.target.value)}
-                          className="rating-input"
-                        />
+                        <label className="item-color-label">
+                          Color:
+                          <input
+                            type="color"
+                            value={item.color}
+                            onChange={(e) => handleItemColorChange(category.id, item.id, e.target.value)}
+                            className="item-color-input"
+                          />
+                        </label>
                       </div>
                       <div className="item-actions">
                         <button 
@@ -391,7 +295,7 @@ function App() {
         ref={wheelRef} 
         className={`wheel-container ${isFullscreen ? 'fullscreen' : ''}`}
       >
-        <WheelOfLife categories={categories} maxScore={maxScore} colorSettings={colorSettings} />
+        <WheelOfLife categories={categories} />
       </div>
     </div>
   );
