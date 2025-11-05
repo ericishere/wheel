@@ -6,7 +6,7 @@ const defaultCategories = [
   {
     id: 1,
     name: "IDENTIFY",
-    color: "#5DADE2",
+    color: "#000000",
     items: [
       { id: 1, name: "Vulnerability Management", status: "high" },
       { id: 2, name: "Governance Risk Verification", status: "mid" },
@@ -16,7 +16,7 @@ const defaultCategories = [
   {
     id: 2,
     name: "PROTECT",
-    color: "#AF7AC5",
+    color: "#000000",
     items: [
       { id: 4, name: "Data Loss Prevention (DLP)", status: "high" },
       { id: 5, name: "Architecture", status: "high" },
@@ -28,7 +28,7 @@ const defaultCategories = [
   {
     id: 3,
     name: "DETECT",
-    color: "#F39C12",
+    color: "#000000",
     items: [
       { id: 9, name: "Security Operation Center (SOC)", status: "high" }
     ]
@@ -36,7 +36,7 @@ const defaultCategories = [
   {
     id: 4,
     name: "RESPOND",
-    color: "#EC7063",
+    color: "#000000",
     items: [
       { id: 10, name: "Incident Response", status: "high" }
     ]
@@ -44,7 +44,7 @@ const defaultCategories = [
   {
     id: 5,
     name: "RECOVER",
-    color: "#52BE80",
+    color: "#000000",
     items: [
       { id: 11, name: "Project Management", status: "mid" }
     ]
