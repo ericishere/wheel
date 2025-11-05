@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import WheelOfLife from './WheelOfLife';
 import './App.css';
 
@@ -18,11 +18,23 @@ const defaultItems = [
 
 const defaultRatings = [6, 6, 5, 4, 5, 6, 6, 4, 5, 4, 5];
 
+const clampNumber = (value, min, max) => {
+  const numeric = Number.isFinite(value) ? value : min;
+  if (numeric < min) return min;
+  if (numeric > max) return max;
+  return numeric;
+};
+
 function App() {
   const [items, setItems] = useState(defaultItems);
   const [ratings, setRatings] = useState(defaultRatings);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [maxScore, setMaxScore] = useState(10);
+  const [lowThreshold, setLowThreshold] = useState(4);
+  const [mediumThreshold, setMediumThreshold] = useState(5);
+  const [lowColor, setLowColor] = useState('#ef4444');
+  const [mediumColor, setMediumColor] = useState('#f59e0b');
+  const [highColor, setHighColor] = useState('#22c55e');
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
 
@@ -33,9 +45,23 @@ function App() {
   };
 
   const handleRatingChange = (index, value) => {
+    const parsedValue = Number.parseInt(value, 10);
+    const boundedValue = clampNumber(Number.isNaN(parsedValue) ? 0 : parsedValue, 0, maxScore);
     const newRatings = [...ratings];
-    newRatings[index] = parseInt(value) || 0;
+    newRatings[index] = boundedValue;
     setRatings(newRatings);
+  };
+
+  const handleLowThresholdChange = (value) => {
+    const parsedValue = Number.parseInt(value, 10);
+    const safeValue = clampNumber(Number.isNaN(parsedValue) ? lowThreshold : parsedValue, 0, mediumThreshold);
+    setLowThreshold(safeValue);
+  };
+
+  const handleMediumThresholdChange = (value) => {
+    const parsedValue = Number.parseInt(value, 10);
+    const safeValue = clampNumber(Number.isNaN(parsedValue) ? mediumThreshold : parsedValue, lowThreshold, maxScore);
+    setMediumThreshold(safeValue);
   };
 
   const addItem = () => {
@@ -66,6 +92,25 @@ function App() {
     setItems(defaultItems);
     setRatings(defaultRatings);
     setMaxScore(10);
+    setLowThreshold(4);
+    setMediumThreshold(5);
+    setLowColor('#ef4444');
+    setMediumColor('#f59e0b');
+    setHighColor('#22c55e');
+  };
+
+  useEffect(() => {
+    setLowThreshold((current) => clampNumber(current, 0, Math.min(mediumThreshold, maxScore)));
+  }, [maxScore, mediumThreshold]);
+
+  useEffect(() => {
+    setMediumThreshold((current) => clampNumber(current, lowThreshold, maxScore));
+  }, [lowThreshold, maxScore]);
+
+  const colorSettings = {
+    low: { max: lowThreshold, color: lowColor },
+    medium: { max: mediumThreshold, color: mediumColor },
+    high: { color: highColor },
   };
 
   return (
@@ -97,9 +142,66 @@ function App() {
                 min="1"
                 max="20"
                 value={maxScore}
-                onChange={(e) => setMaxScore(parseInt(e.target.value) || 10)}
+                onChange={(e) => {
+                  const parsedValue = Number.parseInt(e.target.value, 10);
+                  const bounded = clampNumber(Number.isNaN(parsedValue) ? 10 : parsedValue, 1, 20);
+                  setMaxScore(bounded);
+                }}
               />
             </label>
+          </div>
+
+          <div className="color-thresholds">
+            <h3>Color Thresholds</h3>
+            <div className="threshold-row">
+              <label>
+                Low threshold (≤)
+                <input
+                  type="number"
+                  min="0"
+                  max={mediumThreshold}
+                  value={lowThreshold}
+                  onChange={(e) => handleLowThresholdChange(e.target.value)}
+                />
+              </label>
+              <label>
+                Medium threshold (≤)
+                <input
+                  type="number"
+                  min={lowThreshold}
+                  max={maxScore}
+                  value={mediumThreshold}
+                  onChange={(e) => handleMediumThresholdChange(e.target.value)}
+                />
+              </label>
+            </div>
+
+            <div className="threshold-row">
+              <label>
+                Low color
+                <input
+                  type="color"
+                  value={lowColor}
+                  onChange={(e) => setLowColor(e.target.value)}
+                />
+              </label>
+              <label>
+                Medium color
+                <input
+                  type="color"
+                  value={mediumColor}
+                  onChange={(e) => setMediumColor(e.target.value)}
+                />
+              </label>
+              <label>
+                High color
+                <input
+                  type="color"
+                  value={highColor}
+                  onChange={(e) => setHighColor(e.target.value)}
+                />
+              </label>
+            </div>
           </div>
 
           <div className="items-list">
@@ -136,7 +238,7 @@ function App() {
         ref={wheelRef} 
         className={`wheel-container ${isFullscreen ? 'fullscreen' : ''}`}
       >
-        <WheelOfLife items={items} ratings={ratings} maxScore={maxScore} />
+        <WheelOfLife items={items} ratings={ratings} maxScore={maxScore} colorSettings={colorSettings} />
       </div>
     </div>
   );

@@ -1,6 +1,66 @@
 import React from 'react';
 
-const WheelOfLife = ({ items, ratings, maxScore = 10 }) => {
+const defaultColorSettings = {
+  low: { max: 4, color: '#ef4444' },
+  medium: { max: 5, color: '#f59e0b' },
+  high: { color: '#22c55e' },
+};
+
+const hexToRgb = (hex) => {
+  if (typeof hex !== 'string') {
+    return { r: 239, g: 68, b: 68 };
+  }
+
+  let normalized = hex.replace('#', '').trim();
+
+  if (normalized.length === 3) {
+    normalized = normalized
+      .split('')
+      .map((char) => char + char)
+      .join('');
+  }
+
+  const parsed = Number.parseInt(normalized, 16);
+  if (Number.isNaN(parsed)) {
+    return { r: 239, g: 68, b: 68 };
+  }
+
+  return {
+    r: (parsed >> 16) & 255,
+    g: (parsed >> 8) & 255,
+    b: parsed & 255,
+  };
+};
+
+const mixWithWhite = (hex, amount) => {
+  const safeAmount = Math.min(Math.max(amount, 0), 1);
+  const { r, g, b } = hexToRgb(hex);
+
+  const mixChannel = (channel) => Math.round(channel + (255 - channel) * safeAmount);
+
+  return `rgb(${mixChannel(r)}, ${mixChannel(g)}, ${mixChannel(b)})`;
+};
+
+const resolveBaseColor = (rating, colorSettings) => {
+  const merged = { ...defaultColorSettings, ...colorSettings };
+  const lowMax = merged.low?.max ?? defaultColorSettings.low.max;
+  const mediumMax = merged.medium?.max ?? defaultColorSettings.medium.max;
+  const lowColor = merged.low?.color ?? defaultColorSettings.low.color;
+  const mediumColor = merged.medium?.color ?? defaultColorSettings.medium.color;
+  const highColor = merged.high?.color ?? defaultColorSettings.high.color;
+
+  if (rating <= lowMax) {
+    return lowColor;
+  }
+
+  if (rating <= mediumMax) {
+    return mediumColor;
+  }
+
+  return highColor;
+};
+
+const WheelOfLife = ({ items, ratings, maxScore = 10, colorSettings = defaultColorSettings }) => {
   const size = 800;
   const center = size / 2;
   const numSegments = items.length;
@@ -11,31 +71,18 @@ const WheelOfLife = ({ items, ratings, maxScore = 10 }) => {
 
   // Function to get color based on rating
   const getColor = (rating, level, maxLevel) => {
-    let baseHue, baseSaturation, baseLightness;
-    
-    if (rating < 5) {
-      // Red for low ratings
-      baseHue = 0;
-      baseSaturation = 70;
-      baseLightness = 60;
-    } else if (rating === 5) {
-      // Yellow for medium ratings
-      baseHue = 45;
-      baseSaturation = 80;
-      baseLightness = 60;
-    } else {
-      // Green for high ratings
-      baseHue = 120;
-      baseSaturation = 60;
-      baseLightness = 60;
+    if (rating <= 0) {
+      return 'rgba(226, 232, 240, 0.75)';
     }
 
-    // Inner bars should be darker (less lightness)
-    // level 0 is innermost, maxLevel-1 is outermost
-    const lightnessAdjustment = (level / (maxLevel - 1)) * 15; // 0 to 15% increase
-    const adjustedLightness = baseLightness - 15 + lightnessAdjustment;
+    const baseColor = resolveBaseColor(rating, colorSettings);
+    if (maxLevel <= 1) {
+      return mixWithWhite(baseColor, 0.16);
+    }
 
-    return `hsl(${baseHue}, ${baseSaturation}%, ${adjustedLightness}%)`;
+    const progress = level / (maxLevel - 1);
+    const lightenAmount = 0.06 + progress * 0.18;
+    return mixWithWhite(baseColor, lightenAmount);
   };
 
   // Function to create a segment path
