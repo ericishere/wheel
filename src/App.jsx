@@ -9,9 +9,9 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 1, name: "Asset Management", color: "#BBDEFB" },
-      { id: 2, name: "Risk Assessment", color: "#90CAF9" },
-      { id: 3, name: "Governance", color: "#64B5F6" }
+      { id: 1, name: "Vulnerability Management", color: "#22c55e" },
+      { id: 2, name: "Governance Risk Verification", color: "#f59e0b" },
+      { id: 3, name: "Penetration Test", color: "#ef4444" }
     ]
   },
   {
@@ -20,9 +20,11 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 4, name: "Access Control", color: "#42A5F5" },
-      { id: 5, name: "Data Security", color: "#2196F3" },
-      { id: 6, name: "Training", color: "#1E88E5" }
+      { id: 4, name: "Data Loss Prevention (DLP)", color: "#22c55e" },
+      { id: 5, name: "Architecture", color: "#f59e0b" },
+      { id: 6, name: "Engineering", color: "#ef4444" },
+      { id: 7, name: "DevSecOps", color: "#22c55e" },
+      { id: 8, name: "Training", color: "#f59e0b" }
     ]
   },
   {
@@ -31,8 +33,7 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 7, name: "Anomalies & Events", color: "#1976D2" },
-      { id: 8, name: "Monitoring", color: "#1565C0" }
+      { id: 9, name: "Security Operation Center (SOC)", color: "#ef4444" }
     ]
   },
   {
@@ -41,9 +42,7 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 9, name: "Response Planning", color: "#0D47A1" },
-      { id: 10, name: "Communications", color: "#82B1FF" },
-      { id: 11, name: "Analysis", color: "#448AFF" }
+      { id: 10, name: "Incident Response", color: "#22c55e" }
     ]
   },
   {
@@ -52,9 +51,7 @@ const defaultCategories = [
     color: "#2196F3",
     fontColor: "#000000",
     items: [
-      { id: 12, name: "Recovery Planning", color: "#2979FF" },
-      { id: 13, name: "Improvements", color: "#2962FF" },
-      { id: 14, name: "Communications", color: "#0091EA" }
+      { id: 11, name: "Project Management", color: "#f59e0b" }
     ]
   }
 ];
@@ -118,7 +115,7 @@ function App() {
       name: `Category ${categories.length + 1}`,
       color: '#2196F3',
       fontColor: '#000000',
-      items: [{ id: Date.now(), name: 'New Item', color: '#BBDEFB' }]
+      items: [{ id: Date.now(), name: 'New Item', color: '#22c55e' }]
     }]);
   };
 
@@ -138,7 +135,7 @@ function App() {
           : 1;
         return {
           ...cat,
-          items: [...cat.items, { id: newItemId, name: 'New Item', color: '#BBDEFB' }]
+          items: [...cat.items, { id: newItemId, name: 'New Item', color: '#22c55e' }]
         };
       }
       return cat;

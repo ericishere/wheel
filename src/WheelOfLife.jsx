@@ -84,8 +84,8 @@ const WheelOfLife = ({ categories }) => {
         const item = category.items[angleData.itemIndex];
         const path = createSegmentPath(angleData.startAngle, angleData.endAngle, centerRadius, itemOuterRadius);
 
-        // Calculate text position (middle of segment)
-        const textRadius = (centerRadius + itemOuterRadius) / 2;
+        // Calculate text position (near outer edge of inner circle - more space)
+        const textRadius = itemOuterRadius - 20; // Position near outer edge
         const textX = center + textRadius * Math.cos(angleData.centerAngle);
         const textY = center + textRadius * Math.sin(angleData.centerAngle);
         
