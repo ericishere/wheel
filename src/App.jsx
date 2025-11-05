@@ -8,9 +8,9 @@ const defaultCategories = [
     name: "IDENTIFY",
     color: "#5DADE2",
     items: [
-      { id: 1, name: "Asset Management", rating: 6 },
-      { id: 2, name: "Risk Assessment", rating: 5 },
-      { id: 3, name: "Governance", rating: 5 }
+      { id: 1, name: "Vulnerability Management", rating: 6 },
+      { id: 2, name: "Governance Risk Verification", rating: 5 },
+      { id: 3, name: "Penetration Test", rating: 5 }
     ]
   },
   {
@@ -18,9 +18,11 @@ const defaultCategories = [
     name: "PROTECT",
     color: "#AF7AC5",
     items: [
-      { id: 4, name: "Access Control", rating: 7 },
-      { id: 5, name: "Data Security", rating: 6 },
-      { id: 6, name: "Training & Awareness", rating: 4 }
+      { id: 4, name: "Data Loss Prevention (DLP)", rating: 7 },
+      { id: 5, name: "Architecture", rating: 6 },
+      { id: 6, name: "Engineering", rating: 4 },
+      { id: 7, name: "DevSecOps", rating: 6 },
+      { id: 8, name: "Training", rating: 4 }
     ]
   },
   {
@@ -28,8 +30,7 @@ const defaultCategories = [
     name: "DETECT",
     color: "#F39C12",
     items: [
-      { id: 7, name: "Anomalies & Events", rating: 6 },
-      { id: 8, name: "Continuous Monitoring", rating: 5 }
+      { id: 9, name: "Security Operation Center (SOC)", rating: 6 }
     ]
   },
   {
@@ -37,9 +38,7 @@ const defaultCategories = [
     name: "RESPOND",
     color: "#EC7063",
     items: [
-      { id: 9, name: "Response Planning", rating: 6 },
-      { id: 10, name: "Communications", rating: 5 },
-      { id: 11, name: "Analysis", rating: 6 }
+      { id: 10, name: "Incident Response", rating: 6 }
     ]
   },
   {
@@ -47,9 +46,7 @@ const defaultCategories = [
     name: "RECOVER",
     color: "#52BE80",
     items: [
-      { id: 12, name: "Recovery Planning", rating: 5 },
-      { id: 13, name: "Improvements", rating: 4 },
-      { id: 14, name: "Communications", rating: 5 }
+      { id: 11, name: "Project Management", rating: 5 }
     ]
   }
 ];
@@ -67,9 +64,9 @@ function App() {
   const [maxScore, setMaxScore] = useState(10);
   const [lowThreshold, setLowThreshold] = useState(4);
   const [mediumThreshold, setMediumThreshold] = useState(5);
-  const [lowColor, setLowColor] = useState('#ef4444');
-  const [mediumColor, setMediumColor] = useState('#f59e0b');
-  const [highColor, setHighColor] = useState('#22c55e');
+  const [lowColor, setLowColor] = useState('#ef4444'); // red
+  const [mediumColor, setMediumColor] = useState('#fbbf24'); // yellow
+  const [highColor, setHighColor] = useState('#22c55e'); // green
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
 
@@ -196,9 +193,9 @@ function App() {
     setMaxScore(10);
     setLowThreshold(4);
     setMediumThreshold(5);
-    setLowColor('#ef4444');
-    setMediumColor('#f59e0b');
-    setHighColor('#22c55e');
+    setLowColor('#ef4444'); // red
+    setMediumColor('#fbbf24'); // yellow
+    setHighColor('#22c55e'); // green
   };
 
   useEffect(() => {
