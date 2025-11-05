@@ -199,10 +199,12 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
         const category = categories[angleData.categoryIndex];
         const item = category.items[angleData.itemIndex];
         
+        // Position at the edge of inner circle
+        const labelRadius = maxInnerRadius + 15;
         const labelX = center + labelRadius * Math.cos(angleData.centerAngle);
         const labelY = center + labelRadius * Math.sin(angleData.centerAngle);
 
-        // Determine text anchor based on position
+        // Determine text anchor based on position (horizontal text)
         let textAnchor = 'middle';
         const angleInDegrees = ((angleData.centerAngle + Math.PI / 2) * 180) / Math.PI % 360;
 
@@ -212,20 +214,45 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
           textAnchor = 'end';
         }
 
+        // Wrap text if too long (split at spaces or parentheses)
+        const maxCharsPerLine = 18;
+        const words = item.name.split(/(\s+|\(|\))/g).filter(w => w.trim());
+        const lines = [];
+        let currentLine = '';
+
+        words.forEach(word => {
+          const testLine = currentLine + word;
+          if (testLine.length > maxCharsPerLine && currentLine.length > 0) {
+            lines.push(currentLine.trim());
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        if (currentLine.trim()) {
+          lines.push(currentLine.trim());
+        }
+
+        const lineHeight = 12;
+        const startY = labelY - ((lines.length - 1) * lineHeight) / 2;
+
         return (
           <g key={`item-label-${index}`}>
-            <text
-              x={labelX}
-              y={labelY}
-              textAnchor={textAnchor}
-              dominantBaseline="middle"
-              fill="#333"
-              fontSize="13"
-              fontWeight="500"
-              style={{ userSelect: 'none' }}
-            >
-              {item.name}
-            </text>
+            {lines.map((line, i) => (
+              <text
+                key={i}
+                x={labelX}
+                y={startY + i * lineHeight}
+                textAnchor={textAnchor}
+                dominantBaseline="middle"
+                fill="#333"
+                fontSize="11"
+                fontWeight="500"
+                style={{ userSelect: 'none' }}
+              >
+                {line}
+              </text>
+            ))}
           </g>
         );
       })}
