@@ -154,8 +154,8 @@ const WheelOfLife = ({ categories, colorSettings = defaultColorSettings }) => {
           <path
             key={`category-${index}`}
             d={path}
-            fill={category.color}
-            stroke="#ffffff"
+            fill="none"
+            stroke={category.color}
             strokeWidth="3"
           />
         );
