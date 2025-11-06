@@ -8,9 +8,8 @@ const defaultCategories = [
     name: "IDENTIFY",
     color: "#000000",
     items: [
-      { id: 1, name: "Vulnerability Management", status: "high" },
-      { id: 2, name: "Governance Risk Verification", status: "mid" },
-      { id: 3, name: "Penetration Test", status: "mid" }
+      { id: 1, name: "Governance", status: "high" },
+      { id: 2, name: "Penetration Test", status: "high" }
     ]
   },
   {
@@ -18,11 +17,11 @@ const defaultCategories = [
     name: "PROTECT",
     color: "#000000",
     items: [
-      { id: 4, name: "Data Loss Prevention (DLP)", status: "high" },
-      { id: 5, name: "Architecture", status: "high" },
-      { id: 6, name: "Engineering", status: "mid" },
-      { id: 7, name: "DevSecOps", status: "high" },
-      { id: 8, name: "Training", status: "low" }
+      { id: 3, name: "Data Loss Prevention", status: "high" },
+      { id: 4, name: "Training", status: "high" },
+      { id: 5, name: "Strategic Architecture", status: "mid" },
+      { id: 6, name: "Application Security", status: "low" },
+      { id: 7, name: "Vulnerability Management", status: "low" }
     ]
   },
   {
@@ -30,7 +29,8 @@ const defaultCategories = [
     name: "DETECT",
     color: "#000000",
     items: [
-      { id: 9, name: "Security Operation Center (SOC)", status: "high" }
+      { id: 8, name: "Security Operation Center", status: "mid" },
+      { id: 9, name: "Threat Intelligence", status: "mid" }
     ]
   },
   {
@@ -38,15 +38,16 @@ const defaultCategories = [
     name: "RESPOND",
     color: "#000000",
     items: [
-      { id: 10, name: "Incident Response", status: "high" }
+      { id: 10, name: "Incident Response", status: "mid" }
     ]
   },
   {
     id: 5,
-    name: "RECOVER",
+    name: "ALL",
     color: "#000000",
     items: [
-      { id: 11, name: "Project Management", status: "mid" }
+      { id: 11, name: "Engineer", status: "mid" },
+      { id: 12, name: "PMO", status: "high" }
     ]
   }
 ];
@@ -73,6 +74,7 @@ function App() {
   const [categoryFontSize, setCategoryFontSize] = useState(20);
   const [showCustomization, setShowCustomization] = useState(false);
   const wheelRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleCategoryNameChange = (categoryId, value) => {
     setCategories(categories.map(cat => 
@@ -212,6 +214,67 @@ function App() {
     setCategoryFontSize(20);
   };
 
+  const exportConfig = () => {
+    const config = {
+      version: '1.0',
+      categories: categories,
+      statusGradients: statusGradients,
+      categoryLabelColor: categoryLabelColor,
+      itemFontSize: itemFontSize,
+      itemLineHeight: itemLineHeight,
+      categoryFontSize: categoryFontSize,
+    };
+
+    const dataStr = JSON.stringify(config, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `wheel-config-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const importConfig = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const config = JSON.parse(e.target?.result);
+        
+        // Validate config structure
+        if (!config.categories || !Array.isArray(config.categories)) {
+          throw new Error('Invalid configuration file: categories missing or invalid');
+        }
+
+        // Apply configuration
+        if (config.categories) setCategories(config.categories);
+        if (config.statusGradients) setStatusGradients(config.statusGradients);
+        if (config.categoryLabelColor) setCategoryLabelColor(config.categoryLabelColor);
+        if (typeof config.itemFontSize === 'number') setItemFontSize(config.itemFontSize);
+        if (typeof config.itemLineHeight === 'number') setItemLineHeight(config.itemLineHeight);
+        if (typeof config.categoryFontSize === 'number') setCategoryFontSize(config.categoryFontSize);
+
+        alert('Configuration loaded successfully!');
+      } catch (error) {
+        alert(`Error loading configuration: ${error.message}`);
+        console.error('Import error:', error);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset the input so the same file can be imported again if needed
+    event.target.value = '';
+  };
+
+  const triggerImport = () => {
+    fileInputRef.current?.click();
+  };
+
   const gradientSettings = {
     low: { ...defaultGradientSettings.low, ...statusGradients.low },
     mid: { ...defaultGradientSettings.mid, ...statusGradients.mid },
@@ -227,7 +290,7 @@ function App() {
   return (
     <div className="app">
       <div className="header">
-        <h1>Wheel of Life</h1>
+        <h1>Wheels diagram</h1>
         <div className="header-actions">
           <button onClick={() => setShowCustomization(!showCustomization)} className="btn btn-secondary">
             {showCustomization ? 'Hide' : 'Show'} Customization
@@ -242,7 +305,18 @@ function App() {
         <div className="customization-panel">
           <div className="panel-header">
             <h2>Customization</h2>
-            <button onClick={resetToDefaults} className="btn btn-secondary">Reset to Defaults</button>
+            <div className="panel-actions">
+              <button onClick={exportConfig} className="btn btn-success">Export Config</button>
+              <button onClick={triggerImport} className="btn btn-success">Import Config</button>
+              <button onClick={resetToDefaults} className="btn btn-secondary">Reset to Defaults</button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={importConfig}
+              style={{ display: 'none' }}
+            />
           </div>
           
           <div className="color-thresholds">
