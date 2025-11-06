@@ -347,6 +347,7 @@
 }
 
 .wheel-container {
+  position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -370,6 +371,29 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.btn-exit-fullscreen {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 10000;
+  background-color: #007bff;
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-exit-fullscreen:hover {
+  background-color: #0056b3;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 .wheel-container svg {

@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import WheelOfLife from './WheelOfLife';
 import './App.css';
 
@@ -189,6 +189,19 @@ function App() {
       });
     }
   };
+
+  // Listen for fullscreen changes (e.g., when user presses ESC)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const resetToDefaults = () => {
     setCategories(defaultCategories);
@@ -394,6 +407,11 @@ function App() {
         ref={wheelRef} 
         className={`wheel-container ${isFullscreen ? 'fullscreen' : ''}`}
       >
+        {isFullscreen && (
+          <button onClick={toggleFullscreen} className="btn btn-exit-fullscreen">
+            Exit Fullscreen
+          </button>
+        )}
         <WheelOfLife 
           categories={categories} 
           gradientSettings={gradientSettings} 

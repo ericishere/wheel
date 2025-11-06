@@ -241,7 +241,6 @@ const WheelOfLife = ({
         {/* Text paths for curved category labels */}
         {categories.map((category, index) => {
           const angleData = categoryAngles[index];
-          const midRadius = (categoryInnerRadius + categoryOuterRadius) / 2;
           
           // Create an arc path for the text to follow
           // We'll create a path that spans slightly more than the category's arc
@@ -252,6 +251,16 @@ const WheelOfLife = ({
           // Determine if text should be flipped (upside down)
           let textAngle = (midAngle + Math.PI / 2) * 180 / Math.PI;
           const shouldFlip = textAngle > 90 && textAngle < 270;
+          
+          // Adjust radius based on position - bottom text lower, top text closer to center
+          let midRadius = (categoryInnerRadius + categoryOuterRadius) / 2;
+          if (textAngle > 135 && textAngle < 225) {
+            // Bottom text - push further from center
+            midRadius = categoryInnerRadius + (categoryOuterRadius - categoryInnerRadius) * 0.65;
+          } else if (textAngle < 135 || textAngle > 225) {
+            // Top text - pull closer to center
+            midRadius = categoryInnerRadius + (categoryOuterRadius - categoryInnerRadius) * 0.35;
+          }
           
           // Create arc path - if flipped, draw from end to start (counterclockwise)
           let pathStartAngle, pathEndAngle;
