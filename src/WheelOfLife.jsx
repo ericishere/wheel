@@ -28,13 +28,14 @@ const WheelOfLife = ({
   const categoryOuterRadius = categoryInnerRadius + categoryRingWidth;
   const labelRadius = categoryOuterRadius + 50;
 
-  // Function to get color based on status
+  // Merge color settings
+  const colors = { ...defaultColorSettings, ...colorSettings };
+
+  // Function to get gradient URL based on status
   const getItemColor = (status) => {
-    const colors = { ...defaultColorSettings, ...colorSettings };
-    
-    if (status === 'low') return colors.low;
-    if (status === 'mid') return colors.mid;
-    if (status === 'high') return colors.high;
+    if (status === 'low') return 'url(#gradient-low)';
+    if (status === 'mid') return 'url(#gradient-mid)';
+    if (status === 'high') return 'url(#gradient-high)';
     
     return '#e2e8f0'; // default gray for undefined status
   };
@@ -100,6 +101,22 @@ const WheelOfLife = ({
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      {/* Gradient Definitions */}
+      <defs>
+        <radialGradient id="gradient-low" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={colors.low} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={colors.low} stopOpacity="0.6" />
+        </radialGradient>
+        <radialGradient id="gradient-mid" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={colors.mid} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={colors.mid} stopOpacity="0.6" />
+        </radialGradient>
+        <radialGradient id="gradient-high" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={colors.high} stopOpacity="0.9" />
+          <stop offset="100%" stopColor={colors.high} stopOpacity="0.6" />
+        </radialGradient>
+      </defs>
+      
       {/* Background */}
       <circle cx={center} cy={center} r={labelRadius + 80} fill="#ffffff" />
       
