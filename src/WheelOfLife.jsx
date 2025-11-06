@@ -237,6 +237,51 @@ const WheelOfLife = ({
             </linearGradient>
           );
         })}
+        
+        {/* Text paths for curved category labels */}
+        {categories.map((category, index) => {
+          const angleData = categoryAngles[index];
+          const midRadius = (categoryInnerRadius + categoryOuterRadius) / 2;
+          
+          // Create an arc path for the text to follow
+          // We'll create a path that spans slightly more than the category's arc
+          const startAngle = angleData.startAngle;
+          const endAngle = angleData.endAngle;
+          const midAngle = angleData.centerAngle;
+          
+          // Determine if text should be flipped (upside down)
+          let textAngle = (midAngle + Math.PI / 2) * 180 / Math.PI;
+          const shouldFlip = textAngle > 90 && textAngle < 270;
+          
+          // Create arc path - if flipped, draw from end to start (counterclockwise)
+          let pathStartAngle, pathEndAngle;
+          if (shouldFlip) {
+            pathStartAngle = endAngle;
+            pathEndAngle = startAngle;
+          } else {
+            pathStartAngle = startAngle;
+            pathEndAngle = endAngle;
+          }
+          
+          const x1 = center + midRadius * Math.cos(pathStartAngle);
+          const y1 = center + midRadius * Math.sin(pathStartAngle);
+          const x2 = center + midRadius * Math.cos(pathEndAngle);
+          const y2 = center + midRadius * Math.sin(pathEndAngle);
+          
+          const largeArcFlag = Math.abs(pathEndAngle - pathStartAngle) > Math.PI ? 1 : 0;
+          const sweepFlag = shouldFlip ? 0 : 1;
+          
+          const arcPath = `M ${x1} ${y1} A ${midRadius} ${midRadius} 0 ${largeArcFlag} ${sweepFlag} ${x2} ${y2}`;
+          
+          return (
+            <path
+              key={`text-path-${index}`}
+              id={`text-path-${index}`}
+              d={arcPath}
+              fill="none"
+            />
+          );
+        })}
       </defs>
 
       {/* Background */}
@@ -307,35 +352,23 @@ const WheelOfLife = ({
         );
       })}
 
-      {/* Category labels on outer ring */}
+      {/* Category labels on outer ring - curved along circle */}
       {categories.map((category, index) => {
-        const angleData = categoryAngles[index];
-        const midRadius = (categoryInnerRadius + categoryOuterRadius) / 2;
-        const x = center + midRadius * Math.cos(angleData.centerAngle);
-        const y = center + midRadius * Math.sin(angleData.centerAngle);
-        
-        // Calculate rotation angle for text
-        let textAngle = (angleData.centerAngle + Math.PI / 2) * 180 / Math.PI;
-        
-        // Flip text if it would be upside down
-        if (textAngle > 90 && textAngle < 270) {
-          textAngle += 180;
-        }
-
         return (
           <text
             key={`category-label-${index}`}
-            x={x}
-            y={y}
-            textAnchor="middle"
-            dominantBaseline="middle"
             fill={categoryLabelColor}
             fontSize={categoryFontSize}
             fontWeight="700"
-            transform={`rotate(${textAngle}, ${x}, ${y})`}
             style={{ userSelect: 'none', textTransform: 'uppercase', letterSpacing: '1px' }}
           >
-            {category.name}
+            <textPath
+              href={`#text-path-${index}`}
+              startOffset="50%"
+              textAnchor="middle"
+            >
+              {category.name}
+            </textPath>
           </text>
         );
       })}
