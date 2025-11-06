@@ -254,7 +254,7 @@ const WheelOfLife = ({
           
           // Adjust radius based on position - bottom text lower, top text closer to center
           let midRadius = (categoryInnerRadius + categoryOuterRadius) / 2;
-          if (textAngle > 135 && textAngle < 250) {
+          if (textAngle >= 135 && textAngle <= 250) {
             // Bottom text - push further from center
             midRadius = categoryInnerRadius + (categoryOuterRadius - categoryInnerRadius) * 0.55;
           } else if (textAngle < 135 || textAngle > 250) {
