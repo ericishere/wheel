@@ -51,12 +51,22 @@ const defaultCategories = [
   }
 ];
 
+const defaultGradientSettings = {
+  low: { start: '#fca5a5', end: '#b91c1c' },
+  mid: { start: '#fdba74', end: '#ea580c' },
+  high: { start: '#86efac', end: '#15803d' },
+};
+
+const createDefaultGradients = () => ({
+  low: { ...defaultGradientSettings.low },
+  mid: { ...defaultGradientSettings.mid },
+  high: { ...defaultGradientSettings.high },
+});
+
 function App() {
   const [categories, setCategories] = useState(defaultCategories);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [lowColor, setLowColor] = useState('#ef4444');
-  const [midColor, setMidColor] = useState('#ffa366');
-  const [highColor, setHighColor] = useState('#22c55e');
+  const [statusGradients, setStatusGradients] = useState(createDefaultGradients);
   const [categoryLabelColor, setCategoryLabelColor] = useState('#000000');
   const [itemFontSize, setItemFontSize] = useState(14);
   const [itemLineHeight, setItemLineHeight] = useState(14);
@@ -102,6 +112,19 @@ function App() {
       }
       return cat;
     }));
+  };
+
+  const handleGradientColorChange = (status, stop, value) => {
+    setStatusGradients(prev => {
+      const base = prev[status] ?? defaultGradientSettings[status] ?? {};
+      return {
+        ...prev,
+        [status]: {
+          ...base,
+          [stop]: value,
+        },
+      };
+    });
   };
 
   const addCategory = () => {
@@ -169,19 +192,23 @@ function App() {
 
   const resetToDefaults = () => {
     setCategories(defaultCategories);
-    setLowColor('#ef4444');
-    setMidColor('#ffa366');
-    setHighColor('#22c55e');
+    setStatusGradients(createDefaultGradients());
     setCategoryLabelColor('#000000');
     setItemFontSize(14);
     setItemLineHeight(14);
     setCategoryFontSize(20);
   };
 
-  const colorSettings = {
-    low: lowColor,
-    mid: midColor,
-    high: highColor,
+  const gradientSettings = {
+    low: { ...defaultGradientSettings.low, ...statusGradients.low },
+    mid: { ...defaultGradientSettings.mid, ...statusGradients.mid },
+    high: { ...defaultGradientSettings.high, ...statusGradients.high },
+  };
+
+  const statusLabels = {
+    low: 'Low (Red)',
+    mid: 'Mid (Orange)',
+    high: 'High (Green)',
   };
 
   return (
@@ -206,33 +233,33 @@ function App() {
           </div>
           
           <div className="color-thresholds">
-            <h3>Status Colors</h3>
-            <div className="threshold-row">
-              <label>
-                Low (Red)
-                <input
-                  type="color"
-                  value={lowColor}
-                  onChange={(e) => setLowColor(e.target.value)}
-                />
-              </label>
-              <label>
-                Mid (Orange)
-                <input
-                  type="color"
-                  value={midColor}
-                  onChange={(e) => setMidColor(e.target.value)}
-                />
-              </label>
-              <label>
-                High (Green)
-                <input
-                  type="color"
-                  value={highColor}
-                  onChange={(e) => setHighColor(e.target.value)}
-                />
-              </label>
-            </div>
+            <h3>Status Gradients</h3>
+            {Object.entries(statusLabels).map(([status, label]) => {
+              const gradient = gradientSettings[status] ?? defaultGradientSettings[status];
+              return (
+                <div key={status} className="status-gradient-group">
+                  <span className="status-gradient-title">{label}</span>
+                  <div className="gradient-row">
+                    <label>
+                      Start Color
+                      <input
+                        type="color"
+                        value={gradient?.start || '#e2e8f0'}
+                        onChange={(e) => handleGradientColorChange(status, 'start', e.target.value)}
+                      />
+                    </label>
+                    <label>
+                      End Color
+                      <input
+                        type="color"
+                        value={gradient?.end || '#cbd5f5'}
+                        onChange={(e) => handleGradientColorChange(status, 'end', e.target.value)}
+                      />
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
             <div className="threshold-row">
               <label>
                 Category Label Color
@@ -369,7 +396,7 @@ function App() {
       >
         <WheelOfLife 
           categories={categories} 
-          colorSettings={colorSettings} 
+          gradientSettings={gradientSettings} 
           categoryLabelColor={categoryLabelColor}
           itemFontSize={itemFontSize}
           itemLineHeight={itemLineHeight}

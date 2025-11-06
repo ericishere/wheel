@@ -1,14 +1,121 @@
 import React from 'react';
 
-const defaultColorSettings = {
-  low: '#ef4444',
-  mid: '#ffa366',
-  high: '#22c55e',
+const defaultGradientSettings = {
+  low: { start: '#fca5a5', end: '#b91c1c' },
+  mid: { start: '#fdba74', end: '#ea580c' },
+  high: { start: '#86efac', end: '#15803d' },
+};
+
+const fallbackGradient = {
+  start: '#e2e8f0',
+  end: '#cbd5f5',
+};
+
+const hexColorPattern = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+const isHexColor = (value) => typeof value === 'string' && hexColorPattern.test(value);
+
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
+const normalizeHex = (hex) => {
+  const raw = hex.replace('#', '');
+  if (raw.length === 3) {
+    return raw
+      .split('')
+      .map((char) => char + char)
+      .join('');
+  }
+  return raw.padStart(6, '0').slice(0, 6);
+};
+
+const hexToRgb = (hex) => {
+  const normalized = normalizeHex(hex);
+  const value = parseInt(normalized, 16);
+  return {
+    r: (value >> 16) & 255,
+    g: (value >> 8) & 255,
+    b: value & 255,
+  };
+};
+
+const rgbToHex = ({ r, g, b }) => (
+  `#${[r, g, b]
+    .map((channel) => clamp(Math.round(channel), 0, 255).toString(16).padStart(2, '0'))
+    .join('')}`
+);
+
+const mixColors = (color, target, amount) => {
+  const t = clamp(amount, 0, 1);
+  const base = hexToRgb(color);
+  const goal = hexToRgb(target);
+  return rgbToHex({
+    r: base.r + (goal.r - base.r) * t,
+    g: base.g + (goal.g - base.g) * t,
+    b: base.b + (goal.b - base.b) * t,
+  });
+};
+
+const adjustColor = (color, amount) => {
+  if (!isHexColor(color) || amount === 0) {
+    return color;
+  }
+
+  const target = amount > 0 ? '#ffffff' : '#000000';
+  return mixColors(color, target, Math.abs(amount));
+};
+
+const resolveGradientForStatus = (status, gradientSettings) => {
+  const defaults = defaultGradientSettings[status] ?? fallbackGradient;
+  const entry = gradientSettings?.[status];
+
+  if (!entry) {
+    return defaults;
+  }
+
+  if (typeof entry === 'string') {
+    if (!isHexColor(entry)) {
+      return defaults;
+    }
+
+    const startColor = adjustColor(entry, 0.3) || defaults.start;
+    const endColor = adjustColor(entry, -0.25) || defaults.end;
+    return {
+      start: isHexColor(startColor) ? startColor : defaults.start,
+      end: isHexColor(endColor) ? endColor : defaults.end,
+    };
+  }
+
+  const startCandidate = entry.start;
+  const endCandidate = entry.end;
+  const hasStart = isHexColor(startCandidate);
+  const hasEnd = isHexColor(endCandidate);
+
+  if (hasStart && hasEnd) {
+    return { start: startCandidate, end: endCandidate };
+  }
+
+  if (hasStart) {
+    const derivedEnd = adjustColor(startCandidate, -0.25) || defaults.end;
+    return {
+      start: startCandidate,
+      end: isHexColor(derivedEnd) ? derivedEnd : defaults.end,
+    };
+  }
+
+  if (hasEnd) {
+    const derivedStart = adjustColor(endCandidate, 0.3) || defaults.start;
+    return {
+      start: isHexColor(derivedStart) ? derivedStart : defaults.start,
+      end: endCandidate,
+    };
+  }
+
+  return defaults;
 };
 
 const WheelOfLife = ({ 
   categories, 
-  colorSettings = defaultColorSettings, 
+  gradientSettings = defaultGradientSettings, 
   categoryLabelColor = '#000000',
   itemFontSize = 14,
   itemLineHeight = 14,
@@ -28,28 +135,19 @@ const WheelOfLife = ({
   const categoryOuterRadius = categoryInnerRadius + categoryRingWidth;
   const labelRadius = categoryOuterRadius + 50;
 
-  // Function to get color based on status
-  const getItemColor = (status) => {
-    const colors = { ...defaultColorSettings, ...colorSettings };
-    
-    if (status === 'low') return colors.low;
-    if (status === 'mid') return colors.mid;
-    if (status === 'high') return colors.high;
-    
-    return '#e2e8f0'; // default gray for undefined status
-  };
-
   // Calculate angle for each item
   let itemAngles = [];
   let currentAngle = 0;
   
   categories.forEach((category, catIndex) => {
-    const anglePerItem = (2 * Math.PI) / totalItems;
+    const anglePerItem = totalItems > 0 ? (2 * Math.PI) / totalItems : 0;
     
     category.items.forEach((item, itemIndex) => {
       itemAngles.push({
         categoryIndex: catIndex,
         itemIndex,
+        categoryId: category.id,
+        itemId: item.id,
         startAngle: currentAngle - Math.PI / 2,
         endAngle: (currentAngle + anglePerItem) - Math.PI / 2,
         centerAngle: (currentAngle + anglePerItem / 2) - Math.PI / 2,
@@ -87,7 +185,7 @@ const WheelOfLife = ({
   
   categories.forEach((category, index) => {
     const itemsInCategory = category.items.length;
-    const categoryAngleSpan = (2 * Math.PI * itemsInCategory) / totalItems;
+    const categoryAngleSpan = totalItems > 0 ? (2 * Math.PI * itemsInCategory) / totalItems : 0;
     
     categoryAngles.push({
       startAngle: categoryStartAngle - Math.PI / 2,
@@ -100,6 +198,47 @@ const WheelOfLife = ({
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <defs>
+        {itemAngles.map((angleData) => {
+          const category = categories[angleData.categoryIndex];
+          const item = category?.items?.[angleData.itemIndex];
+
+          if (!item) {
+            return null;
+          }
+
+          const gradient = resolveGradientForStatus(item.status, gradientSettings);
+          const startColor = isHexColor(gradient.start) ? gradient.start : fallbackGradient.start;
+          const endColor = isHexColor(gradient.end) ? gradient.end : fallbackGradient.end;
+          const midColor = mixColors(startColor, endColor, 0.5);
+          const gradientId = `item-gradient-${angleData.categoryId}-${angleData.itemId}`;
+          const innerPoint = {
+            x: center + centerRadius * Math.cos(angleData.centerAngle),
+            y: center + centerRadius * Math.sin(angleData.centerAngle),
+          };
+          const outerPoint = {
+            x: center + maxInnerRadius * Math.cos(angleData.centerAngle),
+            y: center + maxInnerRadius * Math.sin(angleData.centerAngle),
+          };
+
+          return (
+            <linearGradient
+              key={gradientId}
+              id={gradientId}
+              x1={innerPoint.x}
+              y1={innerPoint.y}
+              x2={outerPoint.x}
+              y2={outerPoint.y}
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop offset="0%" stopColor={startColor} stopOpacity="0.95" />
+              <stop offset="60%" stopColor={midColor} stopOpacity="0.98" />
+              <stop offset="100%" stopColor={endColor} stopOpacity="1" />
+            </linearGradient>
+          );
+        })}
+      </defs>
+
       {/* Background */}
       <circle cx={center} cy={center} r={labelRadius + 80} fill="#ffffff" />
       
@@ -127,7 +266,7 @@ const WheelOfLife = ({
       {itemAngles.map((angleData, index) => {
         const category = categories[angleData.categoryIndex];
         const item = category.items[angleData.itemIndex];
-        const color = getItemColor(item.status);
+        const gradientId = `item-gradient-${angleData.categoryId}-${angleData.itemId}`;
         
         const path = createSegmentPath(
           angleData.startAngle, 
@@ -140,7 +279,7 @@ const WheelOfLife = ({
           <path
             key={`item-${index}`}
             d={path}
-            fill={color}
+            fill={`url(#${gradientId})`}
             stroke="#ffffff"
             strokeWidth="2"
           />
